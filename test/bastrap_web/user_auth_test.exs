@@ -42,7 +42,7 @@ defmodule BastrapWeb.UserAuthTest do
 
       assert %{value: signed_token, max_age: max_age} = conn.resp_cookies[@remember_me_cookie]
       assert signed_token != get_session(conn, :user_token)
-      assert max_age == 1728000
+      assert max_age == 1_728_000
     end
   end
 
