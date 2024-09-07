@@ -26,6 +26,7 @@ defmodule BastrapWeb.Game.LobbyComponent do
         <div class="mt-8 text-center">
           <button
             phx-click="start_game"
+            phx-target={@myself}
             class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
           >
             Start Game
@@ -37,6 +38,7 @@ defmodule BastrapWeb.Game.LobbyComponent do
         <div class="mt-8 text-center">
           <button
             phx-click="join_game"
+            phx-target={@myself}
             class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
           >
             Join Game
@@ -45,6 +47,25 @@ defmodule BastrapWeb.Game.LobbyComponent do
       <% end %>
     </div>
     """
+  end
+
+  def handle_event("join_game", _, socket) do
+    %{game: game, current_user: current_user} = socket.assigns
+
+    case Games.join_game(game.id, current_user) do
+      {:ok, :joining} ->
+        {:noreply, put_flash(socket, :info, "Joining game...")}
+      {:error, reason} ->
+        {:noreply, put_flash(socket, :error, "Failed to join game: #{reason}")}
+    end
+  end
+
+  def handle_event("start_game", _, socket) do
+    %{game: %{id: game_id}, current_user: current_user} = socket.assigns
+
+    Games.start_game(game_id, current_user)
+
+    {:noreply, socket}
   end
 
   defp user_in_game?(game, user), do: Enum.member?(game.players, user)

@@ -9,9 +9,9 @@ defmodule Bastrap.Games.Server do
   end
 
   def init({admin, game_id}) do
-    state = %{id: game_id, admin: admin, players: [admin]}
-    broadcast_update(state)
-    {:ok, state}
+    game = %{id: game_id, state: :not_started, admin: admin, players: [admin]}
+    broadcast_update(game)
+    {:ok, game}
   end
 
   def handle_call(:get_id, _from, state), do: {:reply, state.id, state}
@@ -29,6 +29,14 @@ defmodule Bastrap.Games.Server do
       {:noreply, new_state}
     end
   end
+
+  # def handle_cast(:start_game, _from, state) do
+  #   new_state = %{state | state: :in_progress}
+
+  #   broadcast_update(new_state)
+
+  #   {:reply, :ok, new_state}
+  # end
 
   defp via_tuple(game_id) do
     {:via, Registry, {Bastrap.Games.Registry, game_id}}

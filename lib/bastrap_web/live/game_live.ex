@@ -15,7 +15,18 @@ defmodule BastrapWeb.GameLive do
 
   def render(assigns) do
     ~H"""
-    <.live_component module={LobbyComponent} id="lobby" game={@game} current_user={@current_user} />
+    <%= if @game.state == :not_started do %>
+      <.live_component
+        module={LobbyComponent}
+        id={"lobby-#{@current_user.id}"}
+        game={@game}
+        current_user={@current_user}
+      />
+    <% else %>
+      <div class="container mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold mb-4 text-center">Game in Progress</h1>
+      </div>
+    <% end %>
     """
   end
 
@@ -26,25 +37,6 @@ defmodule BastrapWeb.GameLive do
       |> maybe_clear_flash()
 
     {:noreply, new_socket}
-  end
-
-  def handle_event("join_game", _, socket) do
-    %{game: game, current_user: current_user} = socket.assigns
-
-    case Games.join_game(game.id, current_user) do
-      {:ok, :joining} ->
-        {:noreply, put_flash(socket, :info, "Joining game...")}
-      {:error, reason} ->
-        {:noreply, put_flash(socket, :error, "Failed to join game: #{reason}")}
-    end
-  end
-
-  def handle_event("start_game", _, socket) do
-    %{game: %{id: game_id}, current_user: current_user} = socket.assigns
-
-    Games.start_game(game_id, current_user)
-
-    {:noreply, socket}
   end
 
   defp maybe_clear_flash(%{assigns: %{flash: %{info: "Joining game..."}}} = socket) do
