@@ -17,7 +17,9 @@ defmodule Bastrap.Application do
       # Start a worker by calling: Bastrap.Worker.start_link(arg)
       # {Bastrap.Worker, arg},
       # Start to serve requests, typically the last entry
-      BastrapWeb.Endpoint
+      BastrapWeb.Endpoint,
+      {Registry, keys: :unique, name: Bastrap.Games.Registry},
+      {DynamicSupervisor, name: Bastrap.Games.Supervisor, strategy: :one_for_one}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

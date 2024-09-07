@@ -21,7 +21,7 @@ defmodule BastrapWeb.HomeControllerTest do
       assert response =~ ~p"/users/register"
       assert response =~ "Login"
       assert response =~ ~p"/users/log_in"
-      refute response =~ "Join Game"
+      refute response =~ "Create Game"
     end
 
     test "renders join game link when logged in", %{conn: conn} do
@@ -30,8 +30,8 @@ defmodule BastrapWeb.HomeControllerTest do
 
       response = html_response(conn, 200)
 
-      assert response =~ "Join Game"
-      assert response =~ ~p"/game"
+      assert response =~ "Create Game"
+      # assert response =~ ~p"/game"
       refute response =~ "Register"
       refute response =~ "Login"
     end

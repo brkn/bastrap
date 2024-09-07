@@ -7,10 +7,11 @@ defmodule BastrapWeb.HomeHTML do
       <h1 class="text-4xl font-bold mb-4">Welcome to Bastrap</h1>
       <%= if @current_user do %>
         <.link
-          href={~p"/game"}
+          href={~p"/games"}
+          method="post"
           class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
         >
-          Join Game
+          Create Game
         </.link>
       <% else %>
         <.link

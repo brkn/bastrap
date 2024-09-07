@@ -23,6 +23,20 @@ defmodule BastrapWeb.Router do
     get "/", HomeController, :index
   end
 
+  scope "/", BastrapWeb do
+    pipe_through [:browser, :require_authenticated_user]
+
+    post "/games", GameController, :create
+
+    live_session :require_authenticated_user,
+      on_mount: [{BastrapWeb.UserAuth, :ensure_authenticated}] do
+      live "/users/settings", UserSettingsLive, :edit
+      live "/users/settings/confirm_email/:token", UserSettingsLive, :confirm_email
+
+      live "/games/:id", GameLive, :show
+    end
+  end
+
   # Other scopes may use custom stacks.
   # scope "/api", BastrapWeb do
   #   pipe_through :api
@@ -59,16 +73,6 @@ defmodule BastrapWeb.Router do
     end
 
     post "/users/log_in", UserSessionController, :create
-  end
-
-  scope "/", BastrapWeb do
-    pipe_through [:browser, :require_authenticated_user]
-
-    live_session :require_authenticated_user,
-      on_mount: [{BastrapWeb.UserAuth, :ensure_authenticated}] do
-      live "/users/settings", UserSettingsLive, :edit
-      live "/users/settings/confirm_email/:token", UserSettingsLive, :confirm_email
-    end
   end
 
   scope "/", BastrapWeb do
