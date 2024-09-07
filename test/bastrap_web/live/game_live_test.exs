@@ -1,12 +1,9 @@
 defmodule BastrapWeb.GameLiveTest do
   use BastrapWeb.ConnCase
 
-  # import Phoenix.LiveViewTest
+  import Phoenix.LiveViewTest
   alias Bastrap.Accounts
   alias Bastrap.Games
-
-  # TODO: fix this after the games context tests are done
-  @moduletag :skip
 
   describe "Game lobby" do
     setup do
@@ -15,31 +12,32 @@ defmodule BastrapWeb.GameLiveTest do
       %{user: user, game: game}
     end
 
-    test "displays lobby when accessed", %{conn: conn, user: user, game: _game} do
+    test "displays lobby when accessed", %{conn: conn, user: user, game: game} do
       {:ok, _view, html} =
         conn
         |> log_in_user(user)
-        # |> live(~p"/game/#{game.id}")
+        |> live(~p"/games/#{game.id}")
 
       assert html =~ "Game Lobby"
       assert html =~ "Players in lobby: 1"
       assert html =~ user.email
     end
 
-    test "updates when another player joins", %{conn: conn, user: user, game: _game} do
-      {:ok, _view, html} =
+    @tag :focus
+    test "updates when another player joins", %{conn: conn, user: user, game: game} do
+      {:ok, view, _html} =
         conn
         |> log_in_user(user)
-        # |> live(~p"/game/#{game.id}")
+        |> live(~p"/games/#{game.id}")
 
       {:ok, other_user} =
         Accounts.register_user(%{email: "other@example.com", password: "password123"})
 
-      # Games.join_game(game.id, other_user.id)
+      Games.join_game(game.id, other_user)
 
-      assert html =~ "Game Lobby"
-      assert html =~ "Players in lobby: 2"
-      assert html =~ other_user.email
+      assert render_async(view) =~ "Game Lobby"
+      assert render_async(view) =~ "Players in lobby: 2"
+      assert render_async(view) =~ other_user.email
     end
   end
 end

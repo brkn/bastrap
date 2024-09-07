@@ -17,6 +17,19 @@ defmodule Bastrap.Games.Server do
   def handle_call(:get_id, _from, state), do: {:reply, state.id, state}
   def handle_call(:get_state, _from, state), do: {:reply, state, state}
 
+  def handle_cast({:join, user}, state) do
+    if Enum.member?(state.players, user) do
+      {:noreply, state}
+    else
+      new_players = [user | state.players]
+      new_state = %{state | players: new_players}
+
+      broadcast_update(new_state)
+
+      {:noreply, new_state}
+    end
+  end
+
   defp via_tuple(game_id) do
     {:via, Registry, {Bastrap.Games.Registry, game_id}}
   end

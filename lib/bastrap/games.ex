@@ -15,9 +15,18 @@ defmodule Bastrap.Games do
   # FIXME, Just a random stub for now, I haven't implemented the :join at the server.
   def join_game(game_id, user) do
     case game_pid(game_id) do
-      {:ok, pid} -> GenServer.cast(pid, {:join, user})
+      {:ok, pid} -> GenServer.cast(pid, {:join, user}) |> then(fn _ -> {:ok, :joining} end)
       _ -> {:error, :not_found}
     end
+  end
+
+  # TODO: Implement this
+  def start_game(game_id, user) do
+    IO.inspect("Starting game #{game_id} with user #{user}")
+    # case game_pid(game_id) do
+    #   {:ok, pid} -> GenServer.cast(pid, {:start_game, user})
+    #   _ -> {:error, :not_found}
+    # end
   end
 
   def get_game(game_id) do
