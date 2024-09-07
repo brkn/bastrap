@@ -55,6 +55,7 @@ defmodule BastrapWeb.Game.LobbyComponent do
     case Games.join_game(game.id, current_user) do
       {:ok, :joining} ->
         {:noreply, put_flash(socket, :info, "Joining game...")}
+
       {:error, reason} ->
         {:noreply, put_flash(socket, :error, "Failed to join game: #{reason}")}
     end

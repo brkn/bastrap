@@ -21,7 +21,7 @@ defmodule Bastrap.Games.Server do
     if Enum.member?(state.players, user) do
       {:noreply, state}
     else
-      new_players = [user | state.players]
+      new_players = state.players ++ [user]
       new_state = %{state | players: new_players}
 
       broadcast_update(new_state)
