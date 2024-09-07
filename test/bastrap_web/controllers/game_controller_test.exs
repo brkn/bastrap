@@ -19,8 +19,8 @@ defmodule BastrapWeb.GameControllerTest do
 
       assert {:ok, game} = Games.get_game(game_id)
 
-      assert game.admin_id == user.id
-      assert game.players == [user.id]
+      assert game.admin == user
+      assert game.players == [user]
     end
   end
 

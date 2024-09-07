@@ -8,8 +8,8 @@ defmodule Bastrap.Games.Supervisor do
   end
 
   # is a convenience function that uses the running supervisor to start a new GameServer child process.
-  def start_game(admin_id) do
-    DynamicSupervisor.start_child(__MODULE__, {Bastrap.Games.Server, admin_id})
+  def start_game(admin) do
+    DynamicSupervisor.start_child(__MODULE__, {Bastrap.Games.Server, admin})
   end
 
   @impl true

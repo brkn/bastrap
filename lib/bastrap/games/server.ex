@@ -3,13 +3,13 @@ defmodule Bastrap.Games.Server do
 
   alias Phoenix.PubSub
 
-  def start_link(admin_id) do
+  def start_link(admin) do
     game_id = Ecto.UUID.generate()
-    GenServer.start_link(__MODULE__, {admin_id, game_id}, name: via_tuple(game_id))
+    GenServer.start_link(__MODULE__, {admin, game_id}, name: via_tuple(game_id))
   end
 
-  def init({admin_id, game_id}) do
-    state = %{id: game_id, admin_id: admin_id, players: [admin_id]}
+  def init({admin, game_id}) do
+    state = %{id: game_id, admin: admin, players: [admin]}
     broadcast_update(state)
     {:ok, state}
   end
