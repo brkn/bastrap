@@ -2,7 +2,7 @@ defmodule BastrapWeb.GameLive do
   use BastrapWeb, :live_view
 
   alias Bastrap.Games
-  alias BastrapWeb.Game.LobbyComponent
+  alias BastrapWeb.Game.{LobbyComponent, GameComponent}
 
   def mount(%{"id" => game_id}, _session, socket) do
     if connected?(socket), do: Games.subscribe_to_game(game_id)
@@ -23,9 +23,12 @@ defmodule BastrapWeb.GameLive do
         current_user={@current_user}
       />
     <% else %>
-      <div class="container mx-auto px-4 py-8">
-        <h1 class="text-3xl font-bold mb-4 text-center">Game in Progress</h1>
-      </div>
+    <.live_component
+        module={GameComponent}
+        id={"game-#{@current_user.id}"}
+        game={@game}
+        current_user={@current_user}
+      />
     <% end %>
     """
   end

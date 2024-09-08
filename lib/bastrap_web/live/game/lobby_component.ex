@@ -64,7 +64,14 @@ defmodule BastrapWeb.Game.LobbyComponent do
   def handle_event("start_game", _, socket) do
     %{game: %{id: game_id}, current_user: current_user} = socket.assigns
 
-    Games.start_game(game_id, current_user)
+
+    case Games.start_game(game_id, current_user) do
+      {:ok, :starting} ->
+        {:noreply, put_flash(socket, :info, "Starting game...")}
+
+      {:error, reason} ->
+        {:noreply, put_flash(socket, :error, "Failed to join game: #{reason}")}
+    end
 
     {:noreply, socket}
   end

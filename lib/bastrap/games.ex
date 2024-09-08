@@ -22,11 +22,10 @@ defmodule Bastrap.Games do
 
   # TODO: Implement this
   def start_game(game_id, user) do
-    IO.inspect("Starting game #{game_id} with user #{user}")
-    # case game_pid(game_id) do
-    #   {:ok, pid} -> GenServer.cast(pid, {:start_game, user})
-    #   _ -> {:error, :not_found}
-    # end
+    case game_pid(game_id) do
+      {:ok, pid} -> GenServer.cast(pid, {:start_game, user}) |> then(fn _ -> {:ok, :starting} end)
+      _ -> {:error, :not_found}
+    end
   end
 
   def get_game(game_id) do

@@ -30,13 +30,17 @@ defmodule Bastrap.Games.Server do
     end
   end
 
-  # def handle_cast(:start_game, _from, state) do
-  #   new_state = %{state | state: :in_progress}
+  def handle_cast({:start_game, user}, state) do
+    if state.admin != user do
+      {:noreply, state}
+    else
+      new_state = %{state | state: :in_progress}
 
-  #   broadcast_update(new_state)
+      broadcast_update(new_state)
 
-  #   {:reply, :ok, new_state}
-  # end
+      {:noreply, new_state}
+    end
+  end
 
   defp via_tuple(game_id) do
     {:via, Registry, {Bastrap.Games.Registry, game_id}}
