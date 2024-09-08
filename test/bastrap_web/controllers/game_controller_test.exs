@@ -19,8 +19,8 @@ defmodule BastrapWeb.GameControllerTest do
 
       assert {:ok, game} = Games.get_game(game_id)
 
-      assert game.admin == user
-      assert game.players == [user]
+      assert game.admin == %Bastrap.Games.Player{user: user, hand: [], display_name: user.email}
+      assert game.players |> Enum.map(& &1.user) == [user]
     end
   end
 

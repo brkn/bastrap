@@ -2,6 +2,7 @@ defmodule Bastrap.Games.Server do
   use GenServer
 
   alias Phoenix.PubSub
+  alias Bastrap.Games.Player
 
   def start_link(admin) do
     game_id = Ecto.UUID.generate()
@@ -9,8 +10,18 @@ defmodule Bastrap.Games.Server do
   end
 
   def init({admin, game_id}) do
-    game = %{id: game_id, state: :not_started, admin: admin, players: [admin]}
+    admin_player = Player.new(admin)
+
+    game = %{
+      id: game_id,
+      state: :not_started,
+      admin: admin_player,
+      players: [admin_player],
+      current_round: nil
+    }
+
     broadcast_update(game)
+
     {:ok, game}
   end
 
@@ -21,7 +32,8 @@ defmodule Bastrap.Games.Server do
     if Enum.member?(state.players, user) do
       {:noreply, state}
     else
-      new_players = state.players ++ [user]
+      new_player = Player.new(user)
+      new_players = state.players ++ [new_player]
       new_state = %{state | players: new_players}
 
       broadcast_update(new_state)
@@ -31,7 +43,7 @@ defmodule Bastrap.Games.Server do
   end
 
   def handle_cast({:start_game, user}, state) do
-    if state.admin != user do
+    if state.admin.user != user do
       {:noreply, state}
     else
       new_state = %{state | state: :in_progress}

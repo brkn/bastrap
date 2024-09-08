@@ -12,6 +12,14 @@ defmodule Bastrap.Accounts.User do
     timestamps(type: :utc_datetime)
   end
 
+  @type t :: %__MODULE__{
+          email: String.t(),
+          password: String.t(),
+          hashed_password: String.t(),
+          current_password: String.t(),
+          confirmed_at: DateTime.t()
+        }
+
   @doc """
   A user changeset for registration.
 

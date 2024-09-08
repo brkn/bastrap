@@ -23,7 +23,7 @@ defmodule BastrapWeb.GameLive do
         current_user={@current_user}
       />
     <% else %>
-    <.live_component
+      <.live_component
         module={GameComponent}
         id={"game-#{@current_user.id}"}
         game={@game}
