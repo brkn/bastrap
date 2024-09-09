@@ -2,92 +2,123 @@ defmodule BastrapWeb.GameLiveTest do
   use BastrapWeb.ConnCase, async: true
 
   import Phoenix.LiveViewTest
-  alias Bastrap.Accounts
+  alias Bastrap.AccountsFixtures
+
   alias Bastrap.Games
 
   describe "Game lobby" do
     setup do
-      {:ok, user} = Accounts.register_user(%{email: "test@example.com", password: "password123"})
+      admin = AccountsFixtures.user_fixture()
+      users = Enum.map(1..2, fn _ -> AccountsFixtures.user_fixture() end)
 
-      {:ok, other_user} =
-        Accounts.register_user(%{email: "other@example.com", password: "password123"})
+      {:ok, game} = Games.create_game(admin)
 
-      {:ok, game} = Games.create_game(user)
+      Phoenix.PubSub.subscribe(Bastrap.PubSub, "game:#{game.id}")
 
-      %{game: game, user: user, other_user: other_user}
+      %{admin: admin, users: users, game: game}
     end
 
-    test "displays lobby when accessed", %{conn: conn, user: user, game: game} do
+    test "displays lobby with correct initial state", %{conn: conn, admin: admin, game: game} do
       {:ok, _view, html} =
         conn
-        |> log_in_user(user)
+        |> log_in_user(admin)
         |> live(~p"/games/#{game.id}")
 
       assert html =~ "Game Lobby"
       assert html =~ "Players in lobby: 1"
-      assert html =~ user.email
+      assert html =~ admin.email
     end
 
     test "doesn't show join button for players already in game", %{
       conn: conn,
-      user: user,
+      admin: admin,
       game: game
     } do
       {:ok, _view, html} =
         conn
-        |> log_in_user(user)
+        |> log_in_user(admin)
         |> live(~p"/games/#{game.id}")
 
       refute html =~ "Join Game"
     end
 
-    test "allows user to join the game", %{conn: conn, other_user: other_user, game: game} do
+    test "allows non-admin user to join the game", %{conn: conn, users: [user | _], game: game} do
       {:ok, view, _html} =
         conn
-        |> log_in_user(other_user)
+        |> log_in_user(user)
         |> live(~p"/games/#{game.id}")
 
       view |> element("button", "Join Game") |> render_click()
 
-      assert render_async(view) =~ "Game Lobby"
-      assert render_async(view) =~ "Players in lobby: 2"
-      assert render_async(view) =~ other_user.email
+      assert render(view) =~ "Game Lobby"
+      assert render(view) =~ "Players in lobby: 2"
+      assert render(view) =~ user.email
     end
 
-    test "updates when another player joins", %{
+    test "updates all connected clients when a new player joins", %{
       conn: conn,
-      user: user,
-      other_user: other_user,
+      admin: admin,
+      users: [user | _],
       game: game
     } do
-      {:ok, view, _html} =
+      {:ok, admin_view, _html} =
+        conn
+        |> log_in_user(admin)
+        |> live(~p"/games/#{game.id}")
+
+      {:ok, user_view, _html} =
         conn
         |> log_in_user(user)
         |> live(~p"/games/#{game.id}")
 
-      Games.join_game(game.id, other_user)
+      user_view |> element("button", "Join Game") |> render_click()
 
-      assert render_async(view) =~ "Game Lobby"
-      assert render_async(view) =~ "Players in lobby: 2"
-      assert render_async(view) =~ other_user.email
+      assert_receive {:game_update, _}, 500
+
+      assert render(admin_view) =~ "Game Lobby"
+      assert render(admin_view) =~ "Players in lobby: 2"
+      assert render(admin_view) =~ user.email
+
+      assert render(user_view) =~ "Players in lobby: 2"
+      assert render(user_view) =~ user.email
     end
 
-    test "redirects to home when game is not found", %{conn: conn, user: user} do
+    test "redirects to home when accessing non-existent game", %{conn: conn, admin: admin} do
       assert {:error, {:live_redirect, %{to: "/"}}} =
                conn
-               |> log_in_user(user)
+               |> log_in_user(admin)
                |> live(~p"/games/invalid-id")
     end
 
-    test "allows admin to start the game", %{conn: conn, user: user, game: game} do
-      {:ok, view, _html} =
+    test "allows admin to start the game and updates all clients", %{
+      conn: conn,
+      admin: admin,
+      users: users = [_, second_user],
+      game: game
+    } do
+      {:ok, admin_view, _html} =
         conn
-        |> log_in_user(user)
+        |> log_in_user(admin)
         |> live(~p"/games/#{game.id}")
 
-      view |> element("button", "Start Game") |> render_click()
+      {:ok, user_view, _html} =
+        conn
+        |> log_in_user(second_user)
+        |> live(~p"/games/#{game.id}")
 
-      assert render_async(view) =~ "Game in Progress"
+      users
+      |> Enum.each(fn user ->
+        Games.join_game(game.id, user)
+        assert_receive {:game_update, _}, 500
+      end)
+
+      admin_view |> element("button", "Start Game") |> render_click()
+
+      assert_receive {:game_update, updated_game}, 500
+      assert updated_game.state == :in_progress
+
+      assert render(admin_view) =~ "Game in Progress"
+      assert render(user_view) =~ "Game in Progress"
     end
 
     # "Requires mocking the game server to fail"
