@@ -50,6 +50,8 @@ defmodule BastrapWeb.GameLiveTest do
 
       view |> element("button", "Join Game") |> render_click()
 
+      assert_receive {:game_update, _}, 500
+
       assert render(view) =~ "Game Lobby"
       assert render(view) =~ "Players in lobby: 2"
       assert render(view) =~ user.email
