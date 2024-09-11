@@ -5,8 +5,7 @@ defmodule Bastrap.Games.Deck do
 
   alias Bastrap.Games.Deck.Card
 
-  @type rank :: 1..10
-  @type card :: {rank, rank}
+  @type card :: Card.t()
 
   @sorted_deck Enum.flat_map(1..9, fn num1 ->
                  Enum.map((num1 + 1)..10, fn num2 -> {num1, num2} end)
