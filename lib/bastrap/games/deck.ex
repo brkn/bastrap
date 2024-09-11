@@ -40,7 +40,7 @@ defmodule Bastrap.Games.Deck do
 
   def new(player_count) do
     sorted_deck(player_count)
-    |> Enum.map(&Card.shuffle(&1))
+    |> Enum.map(&Card.maybe_flip(&1))
     |> Enum.shuffle()
     |> Enum.chunk_every(hand_length(player_count))
   end

@@ -9,27 +9,27 @@ defmodule Bastrap.Games.Deck.Card do
   @type t :: {rank, rank}
 
   @doc """
-  Shuffles the given card.
-  Shuffling a single card means just turning it upside down.
+  50% of the time turns the card upside down
+  50% of the time returns the card in same direction
 
   ## Examples
 
       iex> card = {1, 2}
-      iex> shuffled = Bastrap.Games.Deck.Card.shuffle(card)
+      iex> shuffled = Bastrap.Games.Deck.Card.maybe_flip(card)
       iex> shuffled == {1, 2} or shuffled == {2, 1}
       true
 
       iex> card = {5, 5}
-      iex> Bastrap.Games.Deck.Card.shuffle(card)
+      iex> Bastrap.Games.Deck.Card.maybe_flip(card)
       {5, 5}
 
       iex> card = {3, 7}
-      iex> shuffled = Bastrap.Games.Deck.Card.shuffle(card)
+      iex> shuffled = Bastrap.Games.Deck.Card.maybe_flip(card)
       iex> shuffled in [{3, 7}, {7, 3}]
       true
   """
-  @spec shuffle(t()) :: t()
-  def shuffle(card) do
+  @spec maybe_flip(t()) :: t()
+  def maybe_flip(card) do
     card
     |> Tuple.to_list()
     |> Enum.shuffle()
@@ -70,5 +70,26 @@ defmodule Bastrap.Games.Deck.Card do
   @spec higher_than?(t(), t()) :: boolean
   def higher_than?(card, other_card) do
     main_value(card) > main_value(other_card)
+  end
+
+  @doc """
+  Real life version of this method would be turning the card upside down
+
+  Examples
+  iex> Bastrap.Games.Deck.Card.flip({1, 2})
+  {2, 1}
+
+  iex> Bastrap.Games.Deck.Card.flip({5, 5})
+  {5, 5}
+
+  iex> Bastrap.Games.Deck.Card.flip({7, 3})
+  {3, 7}
+  """
+  @spec flip(t()) :: t()
+  def flip(card) do
+    card
+    |> Tuple.to_list()
+    |> Enum.reverse()
+    |> List.to_tuple()
   end
 end
