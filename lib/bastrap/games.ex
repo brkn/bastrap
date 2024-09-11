@@ -28,7 +28,7 @@ defmodule Bastrap.Games do
 
   def get_game(game_id) do
     case game_pid(game_id) do
-      {:ok, pid} -> {:ok, GenServer.call(pid, :get_state)}
+      {:ok, pid} -> {:ok, GenServer.call(pid, :get_game)}
       _ -> {:error, :not_found}
     end
   end
