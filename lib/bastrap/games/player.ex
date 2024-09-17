@@ -25,13 +25,14 @@ defmodule Bastrap.Games.Player do
     }
   end
 
-  @doc """
-  Updates the player's score.
-  """
-  @spec update_score(t(), non_neg_integer()) :: t()
-  def update_score(%__MODULE__{} = player, score) do
-    %{player | current_score: score}
-  end
+  # @doc """
+  # Updates the player's score.
+  # TODO: add test coverage
+  # """
+  # @spec update_score(t(), non_neg_integer()) :: t()
+  # def update_score(%__MODULE__{} = player, score) do
+  #   %{player | current_score: score}
+  # end
 
   defp display_name(user) do
     user.email |> String.split("@") |> List.first()
