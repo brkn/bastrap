@@ -6,7 +6,7 @@ defmodule BastrapWeb.GameControllerTest do
 
   describe "POST /games" do
     setup %{conn: conn} do
-      user = user_fixture()
+      user = user_fixture(%{email: "first_part@example.com"})
       conn = log_in_user(conn, user)
       %{conn: conn, user: user}
     end
@@ -19,7 +19,7 @@ defmodule BastrapWeb.GameControllerTest do
 
       assert {:ok, game} = Games.get_game(game_id)
 
-      assert game.admin == %Bastrap.Games.Player{user: user, hand: [], display_name: user.email}
+      assert game.admin == %Bastrap.Games.Player{user: user, hand: [], display_name: "first_part"}
       assert game.players |> Enum.map(& &1.user) == [user]
     end
   end

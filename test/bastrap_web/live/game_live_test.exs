@@ -8,8 +8,13 @@ defmodule BastrapWeb.GameLiveTest do
 
   describe "Game lobby" do
     setup do
-      admin = AccountsFixtures.user_fixture()
-      users = Enum.map(1..2, fn _ -> AccountsFixtures.user_fixture() end)
+      admin = AccountsFixtures.user_fixture(%{email: "admin_email@example.com"})
+
+      users =
+        1..2
+        |> Enum.map(fn i ->
+          AccountsFixtures.user_fixture(%{email: "email#{i}@example.com"})
+        end)
 
       {:ok, game} = Games.create_game(admin)
 
@@ -79,10 +84,10 @@ defmodule BastrapWeb.GameLiveTest do
 
       assert render(admin_view) =~ "Game Lobby"
       assert render(admin_view) =~ "Players in lobby: 2"
-      assert render(admin_view) =~ user.email
+      assert render(admin_view) =~ "admin_email"
 
       assert render(user_view) =~ "Players in lobby: 2"
-      assert render(user_view) =~ user.email
+      assert render(user_view) =~ "email1"
     end
 
     test "redirects to home when accessing non-existent game", %{conn: conn, admin: admin} do

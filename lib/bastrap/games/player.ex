@@ -19,7 +19,7 @@ defmodule Bastrap.Games.Player do
   def new(user) do
     %__MODULE__{
       user: user,
-      display_name: user.email,
+      display_name: display_name(user),
       hand: [],
       current_score: 0
     }
@@ -31,5 +31,9 @@ defmodule Bastrap.Games.Player do
   @spec update_score(t(), non_neg_integer()) :: t()
   def update_score(%__MODULE__{} = player, score) do
     %{player | current_score: score}
+  end
+
+  defp display_name(user) do
+    user.email |> String.split("@") |> List.first()
   end
 end
