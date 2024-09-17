@@ -1,13 +1,22 @@
 defmodule Bastrap.Games.Supervisor do
+  @moduledoc """
+  Supervisor for managing game servers.
+  """
+
   use DynamicSupervisor
 
-  # It's used to start the GameSupervisor itself, typically when your application starts up. This function is called by
-  # your application's supervision tree to start the GameSupervisor as part of your overall application structure.
+  @doc """
+  Starts the supervisor.
+  """
+  @spec start_link(term()) :: Supervisor.on_start()
   def start_link(init_arg) do
     DynamicSupervisor.start_link(__MODULE__, init_arg, name: __MODULE__)
   end
 
-  # is a convenience function that uses the running supervisor to start a new GameServer child process.
+  @doc """
+  Starts a new game server for the given admin user.
+  """
+  @spec start_game(Bastrap.Accounts.User.t()) :: DynamicSupervisor.on_start_child()
   def start_game(admin) do
     DynamicSupervisor.start_child(__MODULE__, {Bastrap.Games.Server, admin})
   end
