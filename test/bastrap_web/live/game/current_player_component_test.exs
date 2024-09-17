@@ -40,7 +40,8 @@ defmodule BastrapWeb.Game.CurrentPlayerComponentTest do
     end
 
     test "renders card values correctly", %{html: html, player: %{hand: hand}} do
-      Enum.with_index(hand) |> Enum.each(fn {card, id_index} ->
+      Enum.with_index(hand)
+      |> Enum.each(fn {card, id_index} ->
         assert_card_values(html, id_index, card)
       end)
     end
@@ -60,6 +61,7 @@ defmodule BastrapWeb.Game.CurrentPlayerComponentTest do
   end
 
   defp assert_card_values(html, id_index, {left, right}) do
-    assert html =~ ~r{<li id="player-card-#{id_index}"[^>]*>.*?<p[^>]*>\s*#{left}\s*</p>.*?<p[^>]*>\s*#{right}\s*</p>}s
+    assert html =~
+             ~r{<li id="player-card-#{id_index}"[^>]*>.*?<p[^>]*>\s*#{left}\s*</p>.*?<p[^>]*>\s*#{right}\s*</p>}s
   end
 end
