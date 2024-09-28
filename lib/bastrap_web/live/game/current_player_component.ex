@@ -6,7 +6,7 @@ defmodule BastrapWeb.Game.CurrentPlayerComponent do
 
   def render(assigns) do
     ~H"""
-    <div class="flex items-center justify-center">
+    <div {@rest} class="flex items-center justify-center">
       <p id="current-player-display-name" class="text-left text-xl font-bold mr-4">
         <%= @player.display_name %>
       </p>
