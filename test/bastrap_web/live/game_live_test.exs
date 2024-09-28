@@ -124,8 +124,8 @@ defmodule BastrapWeb.GameLiveTest do
       assert_receive {:game_update, updated_game}, 500
       assert updated_game.state == :in_progress
 
-      assert render(admin_view) =~ "Game in Progress"
-      assert render(user_view) =~ "Game in Progress"
+      assert render(admin_view) =~ "Current Turn: "
+      assert render(user_view) =~ "Current Turn: "
     end
 
     # "Requires mocking the game server to fail"

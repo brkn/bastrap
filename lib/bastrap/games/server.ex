@@ -2,7 +2,7 @@ defmodule Bastrap.Games.Server do
   use GenServer
 
   alias Phoenix.PubSub
-  alias Bastrap.Games.Player
+  alias Bastrap.Games.{Player, Round}
 
   def start_link(admin) do
     game_id = Ecto.UUID.generate()
@@ -46,8 +46,12 @@ defmodule Bastrap.Games.Server do
     if game.admin.user != user do
       {:noreply, game}
     else
-      new_game = %{game | state: :in_progress}
+      # Why not handle dealer_index at Round.new method?
+      # Because at next round we want to make the dealer the next player
+      dealer_index = Enum.random(0..(length(game.players) - 1))
+      current_round = Round.new(game.players, dealer_index)
 
+      new_game = %{game | state: :in_progress, current_round: current_round}
       broadcast_update(new_game)
 
       {:noreply, new_game}
