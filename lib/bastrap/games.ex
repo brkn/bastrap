@@ -2,7 +2,7 @@ defmodule Bastrap.Games do
   alias Phoenix.PubSub
 
   def create_game(admin) do
-    case Bastrap.Games.Supervisor.start_game(admin) do
+    case Bastrap.Games.Supervisor.create_game(admin) do
       {:ok, pid} ->
         game_id = GenServer.call(pid, :get_id)
         {:ok, %{id: game_id, pid: pid}}

@@ -11,14 +11,14 @@ defmodule Bastrap.Games.SupervisorTest do
 
   describe "start_game/1" do
     test "starts a new game server", %{users: [user | _]} do
-      assert {:ok, pid} = Supervisor.start_game(user)
+      assert {:ok, pid} = Supervisor.create_game(user)
       assert is_pid(pid)
       assert Process.alive?(pid)
     end
 
     test "starts multiple game servers", %{users: [user1, user2]} do
-      assert {:ok, pid1} = Supervisor.start_game(user1)
-      assert {:ok, pid2} = Supervisor.start_game(user2)
+      assert {:ok, pid1} = Supervisor.create_game(user1)
+      assert {:ok, pid2} = Supervisor.create_game(user2)
 
       assert is_pid(pid1)
       assert is_pid(pid2)

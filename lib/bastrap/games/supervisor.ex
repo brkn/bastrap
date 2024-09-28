@@ -16,8 +16,8 @@ defmodule Bastrap.Games.Supervisor do
   @doc """
   Starts a new game server for the given admin user.
   """
-  @spec start_game(Bastrap.Accounts.User.t()) :: DynamicSupervisor.on_start_child()
-  def start_game(admin) do
+  @spec create_game(Bastrap.Accounts.User.t()) :: DynamicSupervisor.on_start_child()
+  def create_game(admin) do
     DynamicSupervisor.start_child(__MODULE__, {Bastrap.Games.Server, admin})
   end
 
