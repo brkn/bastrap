@@ -42,6 +42,18 @@ defmodule Bastrap.Games.Server do
     end
   end
 
+  def handle_cast({:start_game, _user}, game) when length(game.players) < 3 do
+    broadcast_game_error(game, "Need at least 3 players to start the game")
+
+    {:noreply, game}
+  end
+
+  def handle_cast({:start_game, _user}, game) when length(game.players) > 5 do
+    broadcast_game_error(game, "Can't have more than 5 players")
+
+    {:noreply, game}
+  end
+
   def handle_cast({:start_game, user}, game) do
     if game.admin.user != user do
       {:noreply, game}
@@ -58,11 +70,31 @@ defmodule Bastrap.Games.Server do
     end
   end
 
+  # Not sure if we ever need end_round, after each action we shall check if round is ended
+  # TODO: Next dealer finding logic is inside this extract it
+  # def handle_cast(:end_round, game) do
+  #   last_dealer_index = game.current_round.dealer_index
+  #   new_dealer_index = rem(last_dealer_index + 1, length(game.players))
+
+  #   # current_round = Round.new(game.players, new_dealer_index)
+
+  #   # TODO: Check if game is ended, if so, state is :ended
+  #   new_game = %{game | state: :in_progress, current_round: current_round}
+
+  #   broadcast_update(new_game)
+
+  #   {:noreply, new_game}
+  # end
+
   defp via_tuple(game_id) do
     {:via, Registry, {Bastrap.Games.Registry, game_id}}
   end
 
   defp broadcast_update(game) do
     PubSub.broadcast(Bastrap.PubSub, "game:#{game.id}", {:game_update, game})
+  end
+
+  defp broadcast_game_error(game, message) do
+    PubSub.broadcast(Bastrap.PubSub, "game:#{game.id}", {:game_error, message})
   end
 end

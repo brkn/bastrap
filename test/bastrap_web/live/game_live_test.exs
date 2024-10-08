@@ -7,11 +7,14 @@ defmodule BastrapWeb.GameLiveTest do
   alias Bastrap.Games
 
   describe "Game lobby" do
-    setup do
+    setup context do
+      num_of_users = context[:user_count] || 3
+      num_of_non_admin_users = num_of_users - 1
+
       admin = AccountsFixtures.user_fixture(%{email: "admin_email@example.com"})
 
       users =
-        1..2
+        1..num_of_non_admin_users
         |> Enum.map(fn i ->
           AccountsFixtures.user_fixture(%{email: "email#{i}@example.com"})
         end)
@@ -126,6 +129,56 @@ defmodule BastrapWeb.GameLiveTest do
 
       assert render(admin_view) =~ "Current Turn: "
       assert render(user_view) =~ "Current Turn: "
+    end
+
+    @tag user_count: 2
+    test "doesnt start the game when number of players are less than 3", %{
+      conn: conn,
+      admin: admin,
+      users: users,
+      game: game
+    } do
+      {:ok, admin_view, _html} =
+        conn
+        |> log_in_user(admin)
+        |> live(~p"/games/#{game.id}")
+
+      users
+      |> Enum.each(fn user ->
+        Games.join_game(game.id, user)
+        assert_receive {:game_update, _}, 500
+      end)
+
+      admin_view |> element("button", "Start Game") |> render_click()
+
+      assert_receive {:game_error, "Need at least 3 players to start the game"}, 500
+      assert {:ok, %{state: :not_started}} = Games.get_game(game.id)
+      admin_view |> has_element?("#flash-error", "Need at least 3 players to start the game")
+    end
+
+    @tag user_count: 6
+    test "doesnt start the game when number of players are more than 5", %{
+      conn: conn,
+      admin: admin,
+      users: users,
+      game: game
+    } do
+      {:ok, admin_view, _html} =
+        conn
+        |> log_in_user(admin)
+        |> live(~p"/games/#{game.id}")
+
+      users
+      |> Enum.each(fn user ->
+        Games.join_game(game.id, user)
+        assert_receive {:game_update, _}, 500
+      end)
+
+      admin_view |> element("button", "Start Game") |> render_click()
+
+      assert_receive {:game_error, "Can't have more than 5 players"}, 500
+      assert {:ok, %{state: :not_started}} = Games.get_game(game.id)
+      admin_view |> has_element?("#flash-error", "Can't have more than 5 players")
     end
 
     # "Requires mocking the game server to fail"

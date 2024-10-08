@@ -42,6 +42,12 @@ defmodule BastrapWeb.GameLive do
     {:noreply, new_socket}
   end
 
+  def handle_info({:game_error, message}, socket) do
+    new_socket = socket |> put_flash(:error, message)
+
+    {:noreply, new_socket}
+  end
+
   defp maybe_clear_flash(%{assigns: %{flash: %{info: "Joining game..."}}} = socket) do
     clear_flash(socket, :info)
   end
