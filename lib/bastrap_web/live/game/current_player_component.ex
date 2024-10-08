@@ -11,7 +11,7 @@ defmodule BastrapWeb.Game.CurrentPlayerComponent do
         <%= @player.display_name %>
       </p>
       <ol
-        id="player-hand"
+        id="current-player-hand"
         class="flex justify-center space-x-1 overflow-x-auto bg-white rounded-lg p-4 shadow"
       >
         <%= for {{left, right}, index} <- Enum.with_index(@player.hand) do %>

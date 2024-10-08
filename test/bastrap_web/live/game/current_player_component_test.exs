@@ -30,7 +30,7 @@ defmodule BastrapWeb.Game.CurrentPlayerComponentTest do
     end
 
     test "renders player hand container", %{html: html} do
-      assert html =~ ~r{ol id="player-hand"[^>]*>}
+      assert html =~ ~r{ol id="current-player-hand"[^>]*>}
     end
 
     test "renders correct number of cards", %{html: html} do
@@ -48,7 +48,7 @@ defmodule BastrapWeb.Game.CurrentPlayerComponentTest do
 
     @tag hand: []
     test "renders no card elements for empty hand", %{html: html} do
-      assert html =~ ~r{ol id="player-hand"[^>]*>\s*</ol>}s
+      assert html =~ ~r{ol id="current-player-hand"[^>]*>\s*</ol>}s
       refute html =~ ~r{<li id="player-card-}
     end
 
