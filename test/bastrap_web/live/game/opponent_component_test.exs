@@ -5,8 +5,9 @@ defmodule BastrapWeb.Game.OpponentComponentTest do
 
   alias Bastrap.AccountsFixtures
   alias Bastrap.Games.Player
+  alias Bastrap.Games.Hand
 
-  @default_sample_hand [{1, 2}, {3, 4}, {5, 6}]
+  @default_sample_hand_ranks [{1, 2}, {3, 4}, {5, 6}]
   @opponent_display_name "bob"
   @opponent_id "opponent-#{@opponent_display_name}"
 
@@ -21,7 +22,8 @@ defmodule BastrapWeb.Game.OpponentComponentTest do
       email = context[:email] || "#{@opponent_display_name}@example.com"
       user = AccountsFixtures.user_fixture(%{email: email})
       player = Player.new(user)
-      hand = context[:hand] || @default_sample_hand
+      hand_ranks = context[:hand_ranks] || @default_sample_hand_ranks
+      hand = Hand.new(hand_ranks)
 
       player = %{player | hand: hand}
 
@@ -47,13 +49,13 @@ defmodule BastrapWeb.Game.OpponentComponentTest do
       assert card_placeholder_count == 3
     end
 
-    @tag hand: []
+    @tag hand_ranks: []
     test "renders no card placeholders for empty hand", %{html: html} do
       assert html =~ ~r{<ol id="opponent-hand-#{@opponent_display_name}"[^>]*>\s*</ol>}s
       refute html =~ @card_placeholder_regex
     end
 
-    @tag hand: [{7, 8}]
+    @tag hand_ranks: [{7, 8}]
     test "renders correct number of placeholders for hand with single card", %{html: html} do
       card_placeholder_count = Regex.scan(@card_placeholder_regex, html) |> Enum.count()
       assert card_placeholder_count == 1

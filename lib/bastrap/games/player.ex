@@ -2,13 +2,14 @@ defmodule Bastrap.Games.Player do
   @moduledoc """
   Represents a player in the game.
   """
+  alias Bastrap.Games.Hand
 
   defstruct [:user, :display_name, :hand, current_score: 0]
 
   @type t :: %__MODULE__{
           user: Bastrap.Accounts.User.t(),
           display_name: String.t(),
-          hand: list() | nil,
+          hand: Hand.t(),
           current_score: non_neg_integer()
         }
 
@@ -20,7 +21,7 @@ defmodule Bastrap.Games.Player do
     %__MODULE__{
       user: user,
       display_name: display_name(user),
-      hand: [],
+      hand: Hand.new(),
       current_score: 0
     }
   end

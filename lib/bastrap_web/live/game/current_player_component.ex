@@ -14,7 +14,7 @@ defmodule BastrapWeb.Game.CurrentPlayerComponent do
         id="current-player-hand"
         class="flex justify-center space-x-1 overflow-x-auto bg-white rounded-lg p-4 shadow"
       >
-        <%= for {{left, right}, index} <- Enum.with_index(@player.hand) do %>
+        <%= for {{left, right}, index} <- Enum.with_index(@player.hand.cards) do %>
           <li
             id={"player-card-#{index}"}
             class="flex-shrink-0 w-10 h-14 bg-red-600 border border-black rounded-md relative shadow"

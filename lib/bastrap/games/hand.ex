@@ -25,6 +25,8 @@ defmodule Bastrap.Games.Hand do
     %__MODULE__{cards: cards}
   end
 
+  # TODO: this method should accept an index to insert the card at the selected position.
+  # TODO: think of a way to accept an orientation
   @doc """
   Adds a card to the hand.
 
@@ -38,6 +40,13 @@ defmodule Bastrap.Games.Hand do
     %{hand | cards: [card | hand.cards]}
   end
 
+  # TODO: ADD select_card method
+  # This means we should track the selected cards, and know the selectable cards.
+  # If no cards are selected then all cards are selectable.
+  # I've tried storing this information at the card struct, but thta doesnt makes sense at hand module
+  # When selecting a card we would have to mutate multiple cards state's selectable and selected attributes.
+
+  # TODO: DELETE the remove card concept. Server should handle removing via a method called: remove_selected.
   @doc """
   Removes a card from the hand.
 

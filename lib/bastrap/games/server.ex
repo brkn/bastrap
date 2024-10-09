@@ -86,6 +86,27 @@ defmodule Bastrap.Games.Server do
   #   {:noreply, new_game}
   # end
 
+  # TODO: handle cancellation of the turn action.
+  # Maybe not for the first version of the game?
+
+  # TODO: add method called handle_select_card
+  # def handle_cast({:select_card, user, card_index}, game) do
+  # # validate if the player's the current_player
+  # # validate if card is selectable
+  # # if invalid return error
+  # # if valid then mark the card as selected and assign new_hand to the user
+
+  # TODO: add method called handle_submit.
+  # Maybe signature would look like this:
+  # def handle_cast({:submit_turn, user}, game) do
+  # # validate via creating a card_set from the selected cards of the player's hand.
+  # # validate if the player's the current_player
+  # # validate if selected card indexes are consecutive.
+  # # if invalid return error
+  # # if valid then filters over the hand's of the player and filter out the selected cards
+  # Submiting removes all selected cards upon succcess message from the server
+  # This means we should track the selected cards somehow
+
   defp via_tuple(game_id) do
     {:via, Registry, {Bastrap.Games.Registry, game_id}}
   end

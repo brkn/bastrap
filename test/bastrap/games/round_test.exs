@@ -3,6 +3,7 @@ defmodule Bastrap.Games.RoundTest do
 
   alias Bastrap.Games.Round
   alias Bastrap.Games.Player
+  alias Bastrap.Games.Hand
   alias Bastrap.AccountsFixtures
 
   describe "Round.new/2" do
@@ -27,7 +28,10 @@ defmodule Bastrap.Games.RoundTest do
       assert dealer_index == 0
       assert current_player_index == 1
       assert length(round_players) == 3
-      assert Enum.all?(round_players, fn %Player{hand: hand} -> length(hand) == 15 end)
+
+      assert Enum.all?(round_players, fn %Player{hand: %Hand{cards: cards}} ->
+               length(cards) == 15
+             end)
     end
 
     test "wraps current player index when dealer is last player", %{players: players} do
@@ -46,14 +50,20 @@ defmodule Bastrap.Games.RoundTest do
       %Round{players: round_players} = Round.new(four_players, 0)
 
       assert length(round_players) == 4
-      assert Enum.all?(round_players, fn %Player{hand: hand} -> length(hand) == 11 end)
+
+      assert Enum.all?(round_players, fn %Player{hand: %Hand{cards: cards}} ->
+               length(cards) == 11
+             end)
     end
 
     test "distributes correct number of cards for 5 players", %{players: players} do
       %Round{players: round_players} = Round.new(players, 0)
 
       assert length(round_players) == 5
-      assert Enum.all?(round_players, fn %Player{hand: hand} -> length(hand) == 9 end)
+
+      assert Enum.all?(round_players, fn %Player{hand: %Hand{cards: cards}} ->
+               length(cards) == 9
+             end)
     end
   end
 end

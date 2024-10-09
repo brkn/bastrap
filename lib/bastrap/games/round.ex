@@ -18,10 +18,10 @@ defmodule Bastrap.Games.Round do
   """
   @spec new(list(Player.t()), non_neg_integer()) :: t()
   def new(players, dealer_index) do
-    deck = Deck.new(length(players))
+    hands = Deck.deal_hands(length(players))
 
     players_with_hands =
-      Enum.zip(players, deck)
+      Enum.zip(players, hands)
       |> Enum.map(fn {player, hand} -> %{player | hand: hand} end)
 
     current_player_index = rem(dealer_index + 1, length(players))

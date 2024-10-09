@@ -4,6 +4,7 @@ defmodule Bastrap.Games.Deck do
   """
 
   alias Bastrap.Games.Deck.Card
+  alias Bastrap.Games.Hand
 
   @type card :: Card.t()
 
@@ -16,33 +17,35 @@ defmodule Bastrap.Games.Deck do
   @deck_for_4_players @sorted_deck |> List.delete({9, 10})
 
   @doc """
-  Creates a new, shuffled deck of cards.
+  Creates a new set of hands from shuffled deck of cards.
   TODO: add logger for the rand's seed value `:rand.seed(:exsss, {1, 2, 3})`
 
   ## Examples
-      iex> Bastrap.Games.Deck.new(2)
+      iex> Bastrap.Games.Deck.deal_hands(2)
       {:error, :invalid_player_count}
 
-      iex> deck = Bastrap.Games.Deck.new(3)
-      iex> length(deck) == 3 and Enum.all?(deck, &(length(&1) == 15))
+      iex> hands = Bastrap.Games.Deck.deal_hands(3)
+      iex> length(hands) == 3 and Enum.all?(hands, fn hand -> length(hand.cards) == 15 end)
       true
 
-      iex> deck = Bastrap.Games.Deck.new(4)
-      iex> length(deck) == 4 and Enum.all?(deck, &(length(&1) == 11))
+      iex> hands = Bastrap.Games.Deck.deal_hands(4)
+      iex> length(hands) == 4 and Enum.all?(hands, fn hand -> length(hand.cards) == 11 end)
       true
 
-      iex> deck = Bastrap.Games.Deck.new(5)
-      iex> length(deck) == 5 and Enum.all?(deck, &(length(&1) == 9))
+      iex> hands = Bastrap.Games.Deck.deal_hands(5)
+      iex> length(hands) == 5 and Enum.all?(hands, fn hand -> length(hand.cards) == 9 end)
       true
   """
-  @spec new(non_neg_integer()) :: {:error, :invalid_player_count} | list(list(card))
-  def new(player_count) when player_count not in [3, 4, 5], do: {:error, :invalid_player_count}
+  @spec deal_hands(non_neg_integer()) :: {:error, :invalid_player_count} | list(list(card))
+  def deal_hands(player_count) when player_count not in [3, 4, 5],
+    do: {:error, :invalid_player_count}
 
-  def new(player_count) do
+  def deal_hands(player_count) do
     sorted_deck(player_count)
     |> Enum.map(&Card.maybe_flip(&1))
     |> Enum.shuffle()
     |> Enum.chunk_every(hand_length(player_count))
+    |> Enum.map(&Hand.new(&1))
   end
 
   defp hand_length(player_count) do
