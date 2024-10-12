@@ -22,9 +22,7 @@ defmodule BastrapWeb.GameControllerTest do
       assert game.admin == %Bastrap.Games.Player{
                user: user,
                hand: %Bastrap.Games.Hand{
-                 cards: [],
-                 selected_card_indexes: [],
-                 selectable_card_indexes: []
+                 cards: []
                },
                display_name: "first_part"
              }
