@@ -6,6 +6,7 @@ defmodule BastrapWeb.Game.CurrentPlayerComponentTest do
   alias Bastrap.AccountsFixtures
   alias Bastrap.Games.Player
   alias Bastrap.Games.Hand
+  alias Bastrap.Games.Hand.Card, as: HandCard
 
   @default_sample_hand_ranks [{1, 2}, {3, 4}, {5, 6}]
 
@@ -36,9 +37,9 @@ defmodule BastrapWeb.Game.CurrentPlayerComponentTest do
     end
 
     test "renders correct number of cards", %{html: html} do
-      assert html =~ ~r{<li id="player-card-0"[^>]*>}
-      assert html =~ ~r{<li id="player-card-1"[^>]*>}
-      assert html =~ ~r{<li id="player-card-2"[^>]*>}
+      assert html =~ ~r{<li id="current-player-card-0"[^>]*>}
+      assert html =~ ~r{<li id="current-player-card-1"[^>]*>}
+      assert html =~ ~r{<li id="current-player-card-2"[^>]*>}
     end
 
     test "renders card values correctly", %{html: html, player: %{hand: hand}} do
@@ -51,19 +52,19 @@ defmodule BastrapWeb.Game.CurrentPlayerComponentTest do
     @tag hand_ranks: []
     test "renders no card elements for empty hand", %{html: html} do
       assert html =~ ~r{ol id="current-player-hand"[^>]*>\s*</ol>}s
-      refute html =~ ~r{<li id="player-card-}
+      refute html =~ ~r{<li id="current-player-card-}
     end
 
     @tag hand_ranks: [{7, 8}]
     test "renders correct number and values for hand with single card", %{html: html} do
-      assert Enum.count(Regex.scan(~r{<li id="player-card-\d+"}, html)) == 1
+      assert Enum.count(Regex.scan(~r{<li id="current-player-card-\d+"}, html)) == 1
 
-      assert_card_values(html, 0, {7, 8})
+      assert_card_values(html, 0, HandCard.new({7, 8}))
     end
   end
 
-  defp assert_card_values(html, id_index, {left, right}) do
+  defp assert_card_values(html, id_index, %HandCard{ranks: {left, right}}) do
     assert html =~
-             ~r{<li id="player-card-#{id_index}"[^>]*>.*?<p[^>]*>\s*#{left}\s*</p>.*?<p[^>]*>\s*#{right}\s*</p>}s
+             ~r{<li id="current-player-card-#{id_index}"[^>]*>.*?<p[^>]*>\s*#{left}\s*</p>.*?<p[^>]*>\s*#{right}\s*</p>}s
   end
 end

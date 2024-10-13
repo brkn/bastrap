@@ -1,6 +1,8 @@
 defmodule BastrapWeb.Game.CurrentPlayerComponent do
   use BastrapWeb, :html
 
+  alias BastrapWeb.Game.CardComponent
+
   attr :player, Bastrap.Games.Player, required: true
   attr :rest, :global
 
@@ -14,14 +16,8 @@ defmodule BastrapWeb.Game.CurrentPlayerComponent do
         id="current-player-hand"
         class="flex justify-center space-x-1 overflow-x-auto bg-white rounded-lg p-4 shadow"
       >
-        <%= for {{left, right}, index} <- Enum.with_index(@player.hand.cards) do %>
-          <li
-            id={"player-card-#{index}"}
-            class="flex-shrink-0 w-10 h-14 bg-red-600 border border-black rounded-md relative shadow"
-          >
-            <p class="absolute top-0 left-0.5 text-xs font-bold text-white"><%= left %></p>
-            <p class="absolute bottom-0 right-0.5 text-xs font-bold text-white"><%= right %></p>
-          </li>
+        <%= for {card, index} <- Enum.with_index(@player.hand.cards) do %>
+          <CardComponent.render id={"current-player-card-#{index}"} card={card} />
         <% end %>
       </ol>
     </div>
