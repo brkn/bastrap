@@ -76,30 +76,4 @@ defmodule Bastrap.Games.Hand do
         |> then(fn new_hand -> {:ok, new_hand} end)
     end
   end
-
-  # TODO: DELETE the remove card concept. Server should handle removing via a method called: remove_selected.
-  @doc """
-  Removes a card from the hand.
-
-  ## Examples
-      iex> hand = Bastrap.Games.Hand.new([{1, 2}, {3, 4}])
-      iex> Bastrap.Games.Hand.remove_card(hand, {1, 2})
-      {:ok, %Bastrap.Games.Hand{cards: [%Bastrap.Games.Hand.Card{ranks: {3, 4}, selected: false, selectable: true}]}}
-
-      iex> hand = Bastrap.Games.Hand.new([{1, 2}])
-      iex> Bastrap.Games.Hand.remove_card(hand, {3, 4})
-      {:error, :card_not_found}
-  """
-  @spec remove_card(t(), Deck.card()) :: {:ok, t()} | {:error, :card_not_found}
-  def remove_card(%__MODULE__{} = hand, deck_card) do
-    index = Enum.find_index(hand.cards, fn hand_card -> hand_card.ranks == deck_card end)
-
-    if index do
-      new_cards = List.delete_at(hand.cards, index)
-
-      {:ok, %{hand | cards: new_cards}}
-    else
-      {:error, :card_not_found}
-    end
-  end
 end
