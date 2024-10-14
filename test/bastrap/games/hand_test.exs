@@ -27,8 +27,65 @@ defmodule Bastrap.Games.HandTest do
                  %HandCard{ranks: {1, 2}, selected: false, selectable: true},
                  %HandCard{ranks: {3, 4}, selected: true, selectable: true},
                  %HandCard{ranks: {3, 6}, selected: false, selectable: true},
+                 %HandCard{ranks: {2, 8}, selected: false, selectable: false},
+                 %HandCard{ranks: {9, 10}, selected: false, selectable: false}
+               ]
+             }
+    end
+
+    test "makes neighbors selectable when a card is selected", %{
+      hand: hand
+    } do
+      {:ok, updated_hand} = Hand.toggle_card_selection(hand, 2)
+
+      assert updated_hand == %Hand{
+               cards: [
+                 %HandCard{ranks: {1, 2}, selected: false, selectable: false},
+                 %HandCard{ranks: {3, 4}, selected: false, selectable: true},
+                 %HandCard{ranks: {3, 6}, selected: true, selectable: true},
                  %HandCard{ranks: {2, 8}, selected: false, selectable: true},
-                 %HandCard{ranks: {9, 10}, selected: false, selectable: true}
+                 %HandCard{ranks: {9, 10}, selected: false, selectable: false}
+               ]
+             }
+    end
+
+    test "makes a single neighbor selectable when an edge card is selected", %{
+      hand: hand
+    } do
+      {:ok, updated_hand} = Hand.toggle_card_selection(hand, 4)
+
+      assert updated_hand == %Hand{
+               cards: [
+                 %HandCard{ranks: {1, 2}, selected: false, selectable: false},
+                 %HandCard{ranks: {3, 4}, selected: false, selectable: false},
+                 %HandCard{ranks: {3, 6}, selected: false, selectable: false},
+                 %HandCard{ranks: {2, 8}, selected: false, selectable: true},
+                 %HandCard{ranks: {9, 10}, selected: true, selectable: true}
+               ]
+             }
+    end
+
+    @tag hand: %Hand{
+           cards: [
+             %HandCard{ranks: {1, 2}, selected: true, selectable: true},
+             %HandCard{ranks: {3, 4}, selected: false, selectable: true},
+             %HandCard{ranks: {3, 6}, selected: false, selectable: false},
+             %HandCard{ranks: {2, 8}, selected: false, selectable: false},
+             %HandCard{ranks: {9, 10}, selected: false, selectable: true}
+           ]
+         }
+    test "selecting a card doesnt change the selectability of non-neighbour cards", %{
+      hand: hand
+    } do
+      {:ok, updated_hand} = Hand.toggle_card_selection(hand, 4)
+
+      assert updated_hand == %Hand{
+               cards: [
+                 %HandCard{ranks: {1, 2}, selected: true, selectable: true},
+                 %HandCard{ranks: {3, 4}, selected: false, selectable: true},
+                 %HandCard{ranks: {3, 6}, selected: false, selectable: false},
+                 %HandCard{ranks: {2, 8}, selected: false, selectable: true},
+                 %HandCard{ranks: {9, 10}, selected: true, selectable: true}
                ]
              }
     end
@@ -46,7 +103,7 @@ defmodule Bastrap.Games.HandTest do
 
       assert updated_hand == %Hand{
                cards: [
-                 %HandCard{ranks: {1, 2}, selected: true, selectable: false},
+                 %HandCard{ranks: {1, 2}, selected: true, selectable: true},
                  %HandCard{ranks: {7, 9}, selected: true, selectable: true}
                ]
              }

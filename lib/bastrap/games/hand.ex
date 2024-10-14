@@ -60,20 +60,49 @@ defmodule Bastrap.Games.Hand do
       when selected_index >= length(cards),
       do: {:error, :invalid_index}
 
-  def toggle_card_selection(hand, selected_index) do
-    case Enum.at(hand.cards, selected_index) do
-      %{selectable: false} ->
-        {:error, :card_not_selectable}
-
-      _ ->
-        hand.cards
-        |> Enum.with_index()
-        |> Enum.map(fn
-          {card, ^selected_index} -> %{card | selected: !card.selected}
-          {card, _} -> card
-        end)
-        |> then(fn new_cards -> %{hand | cards: new_cards} end)
-        |> then(fn new_hand -> {:ok, new_hand} end)
+  def toggle_card_selection(%__MODULE__{cards: cards} = hand, selected_index) do
+    with %{selectable: true} <- Enum.at(cards, selected_index) do
+      cards
+      |> Enum.with_index()
+      |> Enum.map(fn
+        {card, ^selected_index} -> %{card | selected: !card.selected}
+        {card, _} -> card
+      end)
+      |> update_selectable_cards()
+      |> then(fn new_cards -> %{hand | cards: new_cards} end)
+      |> then(fn final_hand -> {:ok, final_hand} end)
+    else
+      _ -> {:error, :card_not_selectable}
     end
+  end
+
+  defp update_selectable_cards(cards) do
+    cards
+    |> selectable_indexes()
+    |> then(fn selectable_indexes ->
+      cards
+      |> Enum.with_index()
+      |> Enum.map(fn
+        {card, index} -> %{card | selectable: Enum.member?(selectable_indexes, index)}
+      end)
+    end)
+  end
+
+  defp selectable_indexes(cards) do
+    last_index = length(cards) - 1
+
+    cards
+    |> Enum.with_index()
+    |> Enum.filter(fn {card, _} -> card.selected end)
+    |> Enum.flat_map(fn
+      {_, 0} -> [0, 1]
+      {_, ^last_index} -> [last_index - 1, last_index]
+      {_, index} -> [index - 1, index, index + 1]
+    end)
+    |> Enum.uniq()
+    |> then(fn
+      [] -> 0..last_index
+      indexes -> indexes
+    end)
   end
 end
