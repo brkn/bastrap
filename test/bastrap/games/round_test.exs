@@ -21,12 +21,12 @@ defmodule Bastrap.Games.RoundTest do
 
       %Round{
         dealer_index: dealer_index,
-        current_player_index: current_player_index,
+        turn_player_index: turn_player_index,
         players: round_players
       } = Round.new(three_players, 0)
 
       assert dealer_index == 0
-      assert current_player_index == 1
+      assert turn_player_index == 1
       assert length(round_players) == 3
 
       assert Enum.all?(round_players, fn %Player{hand: %Hand{cards: cards}} ->
@@ -37,11 +37,11 @@ defmodule Bastrap.Games.RoundTest do
     test "wraps current player index when dealer is last player", %{players: players} do
       three_players = Enum.take(players, 3)
 
-      %Round{dealer_index: dealer_index, current_player_index: current_player_index} =
+      %Round{dealer_index: dealer_index, turn_player_index: turn_player_index} =
         Round.new(three_players, 2)
 
       assert dealer_index == 2
-      assert current_player_index == 0
+      assert turn_player_index == 0
     end
 
     test "distributes correct number of cards for 4 players", %{players: players} do

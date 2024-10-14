@@ -5,11 +5,11 @@ defmodule Bastrap.Games.Round do
 
   alias Bastrap.Games.{Player, Deck}
 
-  defstruct [:dealer_index, :current_player_index, :players]
+  defstruct [:dealer_index, :turn_player_index, :players]
 
   @type t :: %__MODULE__{
           dealer_index: non_neg_integer(),
-          current_player_index: non_neg_integer(),
+          turn_player_index: non_neg_integer(),
           players: list(Player.t())
         }
 
@@ -24,11 +24,11 @@ defmodule Bastrap.Games.Round do
       Enum.zip(players, hands)
       |> Enum.map(fn {player, hand} -> %{player | hand: hand} end)
 
-    current_player_index = rem(dealer_index + 1, length(players))
+    turn_player_index = rem(dealer_index + 1, length(players))
 
     %__MODULE__{
       dealer_index: dealer_index,
-      current_player_index: current_player_index,
+      turn_player_index: turn_player_index,
       players: players_with_hands
     }
   end

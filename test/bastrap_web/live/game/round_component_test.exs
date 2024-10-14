@@ -59,8 +59,8 @@ defmodule BastrapWeb.Game.RoundComponentTest do
         |> log_in_user(user)
         |> live(~p"/games/#{game.id}")
 
-      %{current_round: %{players: players, current_player_index: current_player_index}} = game
-      current_turn_player = Enum.at(players, current_player_index)
+      %{current_round: %{players: players, turn_player_index: turn_player_index}} = game
+      current_turn_player = Enum.at(players, turn_player_index)
 
       assert admin_view |> element("#current-turn") |> render() =~
                current_turn_player.display_name
@@ -118,8 +118,8 @@ defmodule BastrapWeb.Game.RoundComponentTest do
         |> log_in_user(user)
         |> live(~p"/games/#{game.id}")
 
-      assert admin_view |> has_element?("#current-player-#{display_name(admin)}")
-      assert user_view |> has_element?("#current-player-#{display_name(user)}")
+      assert admin_view |> has_element?("#current-player")
+      assert user_view |> has_element?("#current-player")
     end
 
     test "renders game table", %{conn: conn, admin: admin, users: [user | _], game: game} do
@@ -138,7 +138,7 @@ defmodule BastrapWeb.Game.RoundComponentTest do
     end
   end
 
-  defp display_name(user) do
-    Bastrap.Games.Player.new(user).display_name
-  end
+  # defp display_name(user) do
+  #   Bastrap.Games.Player.new(user).display_name
+  # end
 end

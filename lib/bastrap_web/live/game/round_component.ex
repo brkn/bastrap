@@ -5,7 +5,7 @@ defmodule BastrapWeb.Game.RoundComponent do
 
   def render(assigns) do
     %{
-      round: %{players: players, current_player_index: current_player_index},
+      round: %{players: players, turn_player_index: turn_player_index},
       current_user: current_user
     } = assigns
 
@@ -16,7 +16,7 @@ defmodule BastrapWeb.Game.RoundComponent do
         assigns,
         current_player: current_player,
         other_players: other_players,
-        current_turn_player: Enum.at(players, current_player_index)
+        current_turn_player: Enum.at(players, turn_player_index)
       )
 
     ~H"""
@@ -45,10 +45,7 @@ defmodule BastrapWeb.Game.RoundComponent do
         </div>
       </div>
 
-      <CurrentPlayerComponent.render
-        id={"current-player-#{@current_player.display_name}"}
-        player={@current_player}
-      />
+      <CurrentPlayerComponent.render id="current-player" player={@current_player} />
     </section>
     """
   end

@@ -6,6 +6,9 @@ defmodule BastrapWeb.Game.CurrentPlayerComponent do
   attr :player, Bastrap.Games.Player, required: true
   attr :rest, :global
 
+  # Current player means the player who is on the browser.
+  # It's different than the current turn player, which represents the player that has to act in current turn.
+
   def render(assigns) do
     ~H"""
     <div {@rest} class="flex items-center justify-center">
