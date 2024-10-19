@@ -50,6 +50,17 @@ defmodule BastrapWeb.Game.RoundComponent do
     """
   end
 
+  def handle_event("select_card",  %{"index" => card_index, "player-id" => player_id}, socket) do
+    card_index_str = String.to_integer(card_index)
+
+    IO.inspect(%{
+      card_index_str: card_index_str,
+      player_id: player_id
+    }, label: "\nTODO: call pubsub instead\n")
+
+    {:noreply, socket}
+  end
+
   defp partition_players(players, current_user) do
     {[current_player], other_players} =
       players |> Enum.split_with(&(&1.user.id == current_user.id))

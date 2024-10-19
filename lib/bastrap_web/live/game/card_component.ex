@@ -6,6 +6,8 @@ defmodule BastrapWeb.Game.CardComponent do
   attr :card, HandCard, required: true
   attr :id, :string, required: true
   attr :rest, :global
+  attr :index, :integer, required: true
+  attr :player_id, :integer, required: true
 
   def render(assigns) do
     assigns =
@@ -13,6 +15,7 @@ defmodule BastrapWeb.Game.CardComponent do
       |> assign(:face_down, HandCard.face_down?(assigns.card))
       |> assign(:background_color, background_color(assigns.card))
       |> assign(:ranks, card_ranks(assigns.card))
+      |> assign(:click_attributes, click_attributes(assigns))
 
     ~H"""
     <li
@@ -24,6 +27,7 @@ defmodule BastrapWeb.Game.CardComponent do
         @card.selected && "ring-2 ring-yellow-400",
         @card.selectable && "cursor-pointer hover:ring-2 hover:ring-green-400"
       ]}
+      {@click_attributes}
     >
       <%= if !@face_down do %>
         <p class="absolute top-0 left-0.5 text-xs font-bold text-white">
@@ -47,4 +51,14 @@ defmodule BastrapWeb.Game.CardComponent do
 
   defp card_ranks(%HandCard{ranks: :face_down}), do: {nil, nil}
   defp card_ranks(%HandCard{ranks: ranks}), do: ranks
+
+  defp click_attributes(%{card: %HandCard{selectable: true}, index: index, player_id: player_id}) do
+    %{
+      "phx-click": "select_card",
+      "phx-value-index": index,
+      "phx-value-player-id": player_id,
+      "phx-target": "#round-container"
+    }
+  end
+  defp click_attributes(_), do: %{}
 end

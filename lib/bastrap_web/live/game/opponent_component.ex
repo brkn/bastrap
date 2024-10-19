@@ -19,8 +19,10 @@ defmodule BastrapWeb.Game.OpponentComponent do
       <ol id={"opponent-hand-#{@player.display_name}"} class="flex space-x-0.5">
         <%= for {card, index} <- Enum.with_index(@player.hand.cards) do %>
           <CardComponent.render
-            card={card}
             id={"opponent-hand-#{@player.display_name}-card-#{index}"}
+            card={card}
+            index={index}
+            player_id={@player.user.id}
           />
         <% end %>
       </ol>
