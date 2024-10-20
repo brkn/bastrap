@@ -27,6 +27,7 @@ defmodule BastrapWeb.GameLive do
         module={RoundComponent}
         id={"game-#{@current_user.id}"}
         round={@game.current_round}
+        game_id={@game.id}
         current_user={@current_user}
       />
     <% end %>

@@ -2,7 +2,7 @@ defmodule Bastrap.Games.Server do
   use GenServer
 
   alias Phoenix.PubSub
-  alias Bastrap.Games.{Player, Round}
+  alias Bastrap.Games.{Player, Round, Hand}
 
   def start_link(admin) do
     game_id = Ecto.UUID.generate()
@@ -28,7 +28,7 @@ defmodule Bastrap.Games.Server do
   def handle_call(:get_id, _from, game), do: {:reply, game.id, game}
   def handle_call(:get_game, _from, game), do: {:reply, game, game}
 
-  def handle_cast({:join, user}, game) do
+  def handle_cast({:join, user}, %{state: :not_started} = game) do
     if Enum.member?(game.players, user) do
       {:noreply, game}
     else
@@ -69,6 +69,33 @@ defmodule Bastrap.Games.Server do
       {:noreply, new_game}
     end
   end
+
+  def handle_cast(
+        {:select_card, user, %{card_index: card_index, player_id: cards_player_id}},
+        %{state: :in_progress} = game
+      ) do
+    with {:ok, cards_owner} <- find_card_owner(game, cards_player_id),
+         :ok <- authorize_player_for_select_card(user, cards_owner),
+         {:ok, updated_hand} = Hand.toggle_card_selection(cards_owner.hand, card_index) do
+      updated_game =
+        game.current_round.players
+        |> Enum.map(fn
+          %{user: %{id: ^cards_player_id}} -> %{cards_owner | hand: updated_hand}
+          player -> player
+        end)
+        |> then(fn new_players -> %{game.current_round | players: new_players} end)
+        |> then(fn updated_round -> %{game | current_round: updated_round} end)
+
+      broadcast_update(updated_game)
+      {:noreply, updated_game}
+    else
+      {:error, reason} ->
+        broadcast_game_error(game, reason)
+        {:noreply, game}
+    end
+  end
+
+  # def handle_cast({:select_card, user, %{card_index: card_index, player_id: player_id}}, game), do: :asd
 
   # Not sure if we ever need end_round, after each action we shall check if round is ended
   # TODO: Next dealer finding logic is inside this extract it
@@ -117,5 +144,22 @@ defmodule Bastrap.Games.Server do
 
   defp broadcast_game_error(game, message) do
     PubSub.broadcast(Bastrap.PubSub, "game:#{game.id}", {:game_error, message})
+  end
+
+  defp authorize_player_for_select_card(user, cards_owner) do
+    if user.id == cards_owner.user.id do
+      :ok
+    else
+      {:error, "You can only select your own cards"}
+    end
+  end
+
+  defp find_card_owner(%{current_round: %{players: players}}, cards_player_id) do
+    owner = players |> Enum.find(fn player -> player.user.id == cards_player_id end)
+
+    case owner do
+      nil -> {:error, "Player not found"}
+      _ -> {:ok, owner}
+    end
   end
 end

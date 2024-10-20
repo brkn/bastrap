@@ -60,5 +60,6 @@ defmodule BastrapWeb.Game.CardComponent do
       "phx-target": "#round-container"
     }
   end
+
   defp click_attributes(_), do: %{}
 end

@@ -2,6 +2,7 @@ defmodule BastrapWeb.Game.RoundComponent do
   use BastrapWeb, :live_component
 
   alias BastrapWeb.Game.{OpponentComponent, CurrentPlayerComponent}
+  alias Bastrap.Games
 
   def render(assigns) do
     %{
@@ -50,15 +51,17 @@ defmodule BastrapWeb.Game.RoundComponent do
     """
   end
 
-  def handle_event("select_card",  %{"index" => card_index, "player-id" => player_id}, socket) do
-    card_index_str = String.to_integer(card_index)
+  def handle_event("select_card", %{"index" => card_index, "player-id" => player_id}, socket) do
+    %{game_id: game_id, current_user: current_user} = socket.assigns
+    player_card_id = %{card_index: String.to_integer(card_index), player_id: String.to_integer(player_id)}
 
-    IO.inspect(%{
-      card_index_str: card_index_str,
-      player_id: player_id
-    }, label: "\nTODO: call pubsub instead\n")
+    case Games.select_card(game_id, current_user, player_card_id) do
+      {:ok, :selecting_card} ->
+        {:noreply, socket}
 
-    {:noreply, socket}
+      {:error, reason} ->
+        {:noreply, put_flash(socket, :error, "Failed to select card: #{reason}")}
+    end
   end
 
   defp partition_players(players, current_user) do
