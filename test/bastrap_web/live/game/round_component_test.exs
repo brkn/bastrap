@@ -138,8 +138,6 @@ defmodule BastrapWeb.Game.RoundComponentTest do
       assert user_view |> has_element?("#game-table")
     end
 
-    # TODO: enable back when we fix the card leak problem
-    @tag :skip
     test "allows current turn player to select a card",
          %{conn: conn, admin: admin, users: [user | _], game: game} do
       %{current_round: %{players: players, turn_player_index: turn_player_index}} = game
@@ -156,7 +154,7 @@ defmodule BastrapWeb.Game.RoundComponentTest do
       assert view |> current_player_card_element(1) |> card_is_selectable?()
       assert view |> current_player_card_element(2) |> card_is_selected?()
       assert view |> current_player_card_element(3) |> card_is_selectable?()
-      refute view |> current_player_card_element(3) |> card_is_selectable?()
+      refute view |> current_player_card_element(4) |> card_is_selectable?()
     end
   end
 
