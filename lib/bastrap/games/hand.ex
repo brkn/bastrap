@@ -76,6 +76,10 @@ defmodule Bastrap.Games.Hand do
     end
   end
 
+  # TODO: Bug here.
+  # Let's say hand looks like this [0, 1, 1, 1, 0, 0].
+  # Middle card, at index 2 should be unclickable.
+  # Only edge cards and outer neighbours should be selectable
   defp update_selectable_cards(cards) do
     cards
     |> selectable_indexes()
