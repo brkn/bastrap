@@ -43,6 +43,35 @@ defmodule Bastrap.Games.Player do
     %{player | current_score: current_score + points}
   end
 
+  @doc """
+  Removes the selected cards from the player's hand.
+
+  ## Examples
+    iex> hand = %Bastrap.Games.Hand{cards: [
+    ...>   %Bastrap.Games.Hand.Card{ranks: {9, 2}, selected: false},
+    ...>   %Bastrap.Games.Hand.Card{ranks: {8, 4}, selected: false},
+    ...>   %Bastrap.Games.Hand.Card{ranks: {1, 2}, selected: true},
+    ...>   %Bastrap.Games.Hand.Card{ranks: {3, 4}, selected: true},
+    ...>   %Bastrap.Games.Hand.Card{ranks: {5, 6}, selected: false}
+    ...> ]}
+    iex> player = %Bastrap.Games.Player{hand: hand, user: %{id: 123}}
+    iex> Bastrap.Games.Player.remove_selected_cards(player)
+    %Bastrap.Games.Player{
+      user: %{id: 123},
+      display_name: nil,
+      current_score: 0,
+      hand: %Bastrap.Games.Hand{cards: [
+        %Bastrap.Games.Hand.Card{ranks: {9, 2}, selected: false, selectable: false},
+        %Bastrap.Games.Hand.Card{ranks: {8, 4}, selected: false, selectable: false},
+        %Bastrap.Games.Hand.Card{ranks: {5, 6}, selected: false, selectable: false}
+        ]}
+      }
+  """
+  @spec remove_selected_cards(t()) :: t()
+  def remove_selected_cards(player) do
+    %{player | hand: Hand.remove_selected_cards(player.hand)}
+  end
+
   defp display_name(user) do
     user.email |> String.split("@") |> List.first()
   end
