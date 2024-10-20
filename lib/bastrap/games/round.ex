@@ -24,7 +24,7 @@ defmodule Bastrap.Games.Round do
       Enum.zip(players, hands)
       |> Enum.map(fn {player, hand} -> %{player | hand: hand} end)
 
-    turn_player_index = rem(dealer_index + 1, length(players))
+    turn_player_index = next_player_index(dealer_index, length(players))
 
     %__MODULE__{
       dealer_index: dealer_index,
@@ -32,4 +32,30 @@ defmodule Bastrap.Games.Round do
       players: players_with_hands
     }
   end
+
+  @doc """
+  Advances the turn to the next player.
+
+  ## Examples
+    iex> round = %Bastrap.Games.Round{turn_player_index: 1, players: [%{}, %{}, %{}]}
+    iex> Bastrap.Games.Round.pass_turn(round)
+    %Bastrap.Games.Round{turn_player_index: 2, players: [%{}, %{}, %{}]}
+
+    iex> round = %Bastrap.Games.Round{turn_player_index: 2, players: [%{}, %{}, %{}]}
+    iex> Bastrap.Games.Round.pass_turn(round)
+    %Bastrap.Games.Round{turn_player_index: 0, players: [%{}, %{}, %{}]}
+  """
+  @spec pass_turn(t()) :: t()
+  def pass_turn(%__MODULE__{turn_player_index: turn_player_index, players: players} = round) do
+    %{round | turn_player_index: next_player_index(turn_player_index, length(players))}
+  end
+
+  @doc """
+  Calculates the index of the next player in the round.
+
+  This function is used to determine which player should take the next turn.
+  It wraps around to the first player (index 0) after the last player.
+  """
+  @spec next_player_index(non_neg_integer(), pos_integer()) :: non_neg_integer()
+  defp next_player_index(index, num_of_players), do: rem(index + 1, num_of_players)
 end
