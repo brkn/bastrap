@@ -83,4 +83,30 @@ defmodule Bastrap.Games.Round do
     players |> Enum.at(turn_player_index)
   end
 
+  @doc """
+  Checks if the round should end based on the current player's hand.
+
+  Returns true if the current player's hand is empty,
+  otherwise returns false
+
+  ## Examples
+    iex> player = %Bastrap.Games.Player{hand: %Bastrap.Games.Hand{cards: []}}
+    iex> round = %Bastrap.Games.Round{players: [player], turn_player_index: 0}
+    iex> Bastrap.Games.Round.should_end?(round)
+    true
+
+    iex> player = %Bastrap.Games.Player{hand: %Bastrap.Games.Hand{cards: [%Bastrap.Games.Hand.Card{}]}}
+    iex> round = %Bastrap.Games.Round{players: [player], turn_player_index: 0}
+    iex> Bastrap.Games.Round.should_end?(round)
+    false
+  """
+  def should_end?(round) do
+    round
+    |> current_turn_player()
+    |> then(fn player -> player.hand.cards end)
+    |> then(fn
+      [] -> true
+      _ -> false
+    end)
+  end
 end
