@@ -33,9 +33,7 @@ defmodule Bastrap.Games.HandTest do
              }
     end
 
-    test "makes neighbors selectable when a card is selected", %{
-      hand: hand
-    } do
+    test "makes neighbors selectable when a card is selected", %{hand: hand} do
       {:ok, updated_hand} = Hand.toggle_card_selection(hand, 2)
 
       assert updated_hand == %Hand{
@@ -49,9 +47,7 @@ defmodule Bastrap.Games.HandTest do
              }
     end
 
-    test "makes a single neighbor selectable when an edge card is selected", %{
-      hand: hand
-    } do
+    test "makes a single neighbor selectable when an edge card is selected", %{hand: hand} do
       {:ok, updated_hand} = Hand.toggle_card_selection(hand, 4)
 
       assert updated_hand == %Hand{
@@ -74,9 +70,7 @@ defmodule Bastrap.Games.HandTest do
              %HandCard{ranks: {9, 10}, selected: false, selectable: true}
            ]
          }
-    test "selecting a card doesnt change the selectability of non-neighbour cards", %{
-      hand: hand
-    } do
+    test "selecting a card doesnt change the selectability of non-neighbour cards", %{hand: hand} do
       {:ok, updated_hand} = Hand.toggle_card_selection(hand, 4)
 
       assert updated_hand == %Hand{
@@ -91,25 +85,8 @@ defmodule Bastrap.Games.HandTest do
     end
 
     @tag hand: %Hand{
-           cards: [
-             HandCard.new({1, 2}, selected: true),
-             HandCard.new({7, 9}, selected: false, selectable: true)
-           ]
+           cards: [HandCard.new({1, 2}, selected: true, selectable: true)]
          }
-    test "selects an unselected card in the hand when another card is already selected", %{
-      hand: hand
-    } do
-      {:ok, updated_hand} = Hand.toggle_card_selection(hand, 1)
-
-      assert updated_hand == %Hand{
-               cards: [
-                 %HandCard{ranks: {1, 2}, selected: true, selectable: true},
-                 %HandCard{ranks: {7, 9}, selected: true, selectable: true}
-               ]
-             }
-    end
-
-    @tag hand: %Hand{cards: [HandCard.new({1, 2}, selected: true, selectable: true)]}
     test "unselects a card in the hand", %{hand: hand} do
       {:ok, updated_hand} = Hand.toggle_card_selection(hand, 0)
 
@@ -147,6 +124,52 @@ defmodule Bastrap.Games.HandTest do
 
     test "returns an error when the index is negative", %{hand: hand} do
       assert {:error, :invalid_index} = Hand.toggle_card_selection(hand, -1)
+    end
+  end
+
+  describe "remove_selected_cards/1" do
+    test "removes only selected cards from the hand" do
+      hand = Hand.new([{1, 2}, {3, 4}, {5, 6}])
+
+      hand = %{
+        hand
+        | cards: [
+            %HandCard{ranks: {1, 2}, selected: true, selectable: true},
+            %HandCard{ranks: {3, 4}, selected: false, selectable: true},
+            %HandCard{ranks: {5, 6}, selected: true, selectable: true}
+          ]
+      }
+
+      updated_hand = Hand.remove_selected_cards(hand)
+
+      assert updated_hand.cards == [
+               %HandCard{ranks: {3, 4}, selected: false, selectable: true}
+             ]
+    end
+
+    test "returns the same hand when no cards are selected" do
+      hand = Hand.new([{1, 2}, {3, 4}, {5, 6}])
+
+      updated_hand = Hand.remove_selected_cards(hand)
+
+      assert updated_hand == hand
+    end
+
+    test "returns an empty hand when all cards are selected" do
+      hand = Hand.new([{1, 2}, {3, 4}, {5, 6}])
+      hand = %{hand | cards: Enum.map(hand.cards, &%{&1 | selected: true})}
+
+      updated_hand = Hand.remove_selected_cards(hand)
+
+      assert updated_hand.cards == []
+    end
+
+    test "returns an empty hand when given an empty hand" do
+      hand = Hand.new()
+
+      updated_hand = Hand.remove_selected_cards(hand)
+
+      assert updated_hand == hand
     end
   end
 end

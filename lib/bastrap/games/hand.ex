@@ -76,6 +76,27 @@ defmodule Bastrap.Games.Hand do
     end
   end
 
+  @doc """
+  Removes the selected cards from the hand.
+
+  ## Examples
+    iex> hand = Bastrap.Games.Hand.new([{1, 2}, {3, 4}, {5, 6}])
+    iex> hand = %{hand | cards: [
+    ...>   %Bastrap.Games.Hand.Card{ranks: {1, 2}, selected: true, selectable: true},
+    ...>   %Bastrap.Games.Hand.Card{ranks: {3, 4}, selected: true, selectable: true},
+    ...>   %Bastrap.Games.Hand.Card{ranks: {5, 6}, selected: false, selectable: true}
+    ...> ]}
+    iex> updated_hand = Bastrap.Games.Hand.remove_selected_cards(hand)
+    iex> updated_hand.cards
+    [%Bastrap.Games.Hand.Card{ranks: {5, 6}, selected: false, selectable: true}]
+  """
+  @spec remove_selected_cards(t()) :: t()
+  def remove_selected_cards(%__MODULE__{cards: cards} = hand) do
+    cards
+    |> Enum.reject(& &1.selected)
+    |> then(&%{hand | cards: &1})
+  end
+
   # TODO: Bug here.
   # Let's say hand looks like this [0, 1, 1, 1, 0, 0].
   # Middle card, at index 2 should be unclickable.
