@@ -55,7 +55,13 @@ defmodule Bastrap.Games.Round do
 
   This function is used to determine which player should take the next turn.
   It wraps around to the first player (index 0) after the last player.
+
+  ## Examples
+    iex> Bastrap.Games.Round.next_player_index(0, 3)
+    1
+    iex> Bastrap.Games.Round.next_player_index(2, 3)
+    0
   """
   @spec next_player_index(non_neg_integer(), pos_integer()) :: non_neg_integer()
-  defp next_player_index(index, num_of_players), do: rem(index + 1, num_of_players)
+  def next_player_index(index, num_of_players), do: rem(index + 1, num_of_players)
 end
