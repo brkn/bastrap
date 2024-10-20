@@ -3,21 +3,22 @@ defmodule BastrapWeb.Game.RoundComponent do
 
   alias BastrapWeb.Game.{OpponentComponent, CurrentPlayerComponent}
   alias Bastrap.Games
+  alias Bastrap.Games.Round
 
   def render(assigns) do
     %{
-      round: %{players: players, turn_player_index: turn_player_index},
+      round: round,
       current_user: current_user
     } = assigns
 
-    {current_player, other_players} = partition_players(players, current_user)
+    {current_player, other_players} = partition_players(round.players, current_user)
 
     assigns =
       assign(
         assigns,
         current_player: current_player,
         other_players: other_players,
-        current_turn_player: Enum.at(players, turn_player_index)
+        current_turn_player: Round.current_turn_player(round)
       )
 
     ~H"""

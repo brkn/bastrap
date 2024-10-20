@@ -64,4 +64,23 @@ defmodule Bastrap.Games.Round do
   """
   @spec next_player_index(non_neg_integer(), pos_integer()) :: non_neg_integer()
   def next_player_index(index, num_of_players), do: rem(index + 1, num_of_players)
+
+  @doc """
+  Returns the player whose turn it currently is.
+
+  ## Examples
+    iex> players = [
+    ...>   %Bastrap.Games.Player{user: %{id: 1}, display_name: "Alice"},
+    ...>   %Bastrap.Games.Player{user: %{id: 2}, display_name: "Bob"},
+    ...>   %Bastrap.Games.Player{user: %{id: 3}, display_name: "Charlie"}
+    ...> ]
+    iex> round = %Bastrap.Games.Round{turn_player_index: 1, players: players}
+    iex> Bastrap.Games.Round.current_turn_player(round)
+    %Bastrap.Games.Player{user: %{id: 2}, display_name: "Bob"}
+  """
+  @spec current_turn_player(t()) :: Player.t()
+  def current_turn_player(%__MODULE__{turn_player_index: turn_player_index, players: players}) do
+    players |> Enum.at(turn_player_index)
+  end
+
 end
