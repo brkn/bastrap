@@ -6,9 +6,9 @@ defmodule ConsoleHelpers do
   def populate_game(game_id) do
     require Ecto.Query
 
-    query = Ecto.Query.from u in Bastrap.Accounts.User, where: u.email != "asd@asd.asd"
+    query = Ecto.Query.from(u in Bastrap.Accounts.User, where: u.email != "asd@asd.asd")
 
-    users = Bastrap.Repo.all query
+    users = Bastrap.Repo.all(query)
 
     users |> Enum.each(fn u -> Bastrap.Games.join_game(game_id, u) end)
   end

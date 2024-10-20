@@ -53,7 +53,11 @@ defmodule BastrapWeb.Game.RoundComponent do
 
   def handle_event("select_card", %{"index" => card_index, "player-id" => player_id}, socket) do
     %{game_id: game_id, current_user: current_user} = socket.assigns
-    player_card_id = %{card_index: String.to_integer(card_index), player_id: String.to_integer(player_id)}
+
+    player_card_id = %{
+      card_index: String.to_integer(card_index),
+      player_id: String.to_integer(player_id)
+    }
 
     case Games.select_card(game_id, current_user, player_card_id) do
       {:ok, :selecting_card} ->
