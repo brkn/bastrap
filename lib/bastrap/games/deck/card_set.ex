@@ -141,10 +141,15 @@ defmodule Bastrap.Games.Deck.CardSet do
       iex> consecutive_set_with_same_legth = [{1, 2}, {2, 3}, {3, 4}]
       iex> Bastrap.Games.Deck.CardSet.higher_than?(same_number_set, consecutive_set_with_same_legth)
       true
+
+      iex> invalid_set = [{5, 1}, {1, 2}, {8, 3}]
+      iex> empty_set = []
+      iex> Bastrap.Games.Deck.CardSet.higher_than?(invalid_set, empty_set)
+      false
   """
   @spec higher_than?(t(), t()) :: boolean
   def higher_than?(card_set, other_card_set) when length(card_set) > length(other_card_set),
-    do: true
+    do: type(card_set) != :invalid
 
   def higher_than?(card_set, other_card_set) when length(card_set) < length(other_card_set),
     do: false
@@ -161,6 +166,9 @@ defmodule Bastrap.Games.Deck.CardSet do
         true
 
       {:consecutive, :same_number} ->
+        false
+
+      _ ->
         false
     end
   end
