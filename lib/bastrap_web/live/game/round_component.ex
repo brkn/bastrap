@@ -52,6 +52,12 @@ defmodule BastrapWeb.Game.RoundComponent do
     """
   end
 
+  # TODO: handle this
+  def handle_event("select_card", %{"index" => index, "player-id" => "center_pile"}, socket) do
+    IO.inspect("Clicked on center pile card #{index}")
+    {:noreply, socket}
+  end
+
   def handle_event("select_card", %{"index" => card_index, "player-id" => player_id}, socket) do
     %{game_id: game_id, current_user: current_user} = socket.assigns
 

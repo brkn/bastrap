@@ -7,7 +7,9 @@ defmodule BastrapWeb.Game.CardComponent do
   attr :id, :string, required: true
   attr :rest, :global
   attr :index, :integer, required: true
-  attr :player_id, :integer, required: true
+  # TODO: Revert this back to this: `attr :player_id, :integer, required: true`
+  # Center pile cards should be handled at it's own component.
+  attr :player_id, :any, required: true
 
   def render(assigns) do
     assigns =
