@@ -162,4 +162,13 @@ defmodule Bastrap.Games.Server do
       _ -> {:ok, owner}
     end
   end
+
+  # TODO: delete this, I hate this.
+  if Mix.env() == :test do
+    def handle_call({:setup_center_pile_for_test, center_pile}, _from, game) do
+      updated_game = put_in(game.current_round.center_pile, center_pile)
+      broadcast_update(updated_game)
+      {:reply, {:ok, updated_game}, updated_game}
+    end
+  end
 end

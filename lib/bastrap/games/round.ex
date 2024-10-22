@@ -3,14 +3,15 @@ defmodule Bastrap.Games.Round do
   Represents the state of a round in the game.
   """
 
-  alias Bastrap.Games.{Player, Deck}
+  alias Bastrap.Games.{Player, Deck, CenterPile}
 
-  defstruct [:dealer_index, :turn_player_index, :players]
+  defstruct [:dealer_index, :turn_player_index, :players, center_pile: CenterPile.new()]
 
   @type t :: %__MODULE__{
           dealer_index: non_neg_integer(),
           turn_player_index: non_neg_integer(),
-          players: list(Player.t())
+          players: list(Player.t()),
+          center_pile: CenterPile.t()
         }
 
   @doc """

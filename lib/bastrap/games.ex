@@ -65,4 +65,14 @@ defmodule Bastrap.Games do
       _ -> {:error, :not_found}
     end
   end
+
+  # TODO: delete this, I hate this.
+  if Mix.env() == :test do
+    def setup_center_pile_for_test(game_id, ranks) do
+      case game_pid(game_id) do
+        {:ok, pid} -> GenServer.call(pid, {:setup_center_pile_for_test, ranks})
+        _ -> {:error, :not_found}
+      end
+    end
+  end
 end

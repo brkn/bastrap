@@ -116,8 +116,8 @@ defmodule BastrapWeb.Game.RoundComponentTest do
         |> log_in_user(user)
         |> live(~p"/games/#{game.id}")
 
-      assert admin_view |> has_element?("#game-table")
-      assert user_view |> has_element?("#game-table")
+      assert admin_view |> has_element?("#center-pile")
+      assert user_view |> has_element?("#center-pile")
     end
   end
 

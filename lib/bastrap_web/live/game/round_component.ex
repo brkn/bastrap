@@ -1,7 +1,7 @@
 defmodule BastrapWeb.Game.RoundComponent do
   use BastrapWeb, :live_component
 
-  alias BastrapWeb.Game.{OpponentComponent, CurrentPlayerComponent}
+  alias BastrapWeb.Game.{OpponentComponent, CurrentPlayerComponent, CenterPileComponent}
   alias Bastrap.Games
   alias Bastrap.Games.Round
 
@@ -38,13 +38,11 @@ defmodule BastrapWeb.Game.RoundComponent do
           <OpponentComponent.render id={"opponent-#{player.display_name}"} player={player} />
         <% end %>
 
-        <div
-          id="game-table"
-          class="bg-green-600 rounded-lg p-16 flex items-center justify-center text-white text-2xl font-bold"
-          style="grid-area: game;"
-        >
-          Game Table
-        </div>
+        <.live_component
+          module={CenterPileComponent}
+          id="center-pile"
+          center_pile={@round.center_pile}
+        />
       </div>
 
       <CurrentPlayerComponent.render id="current-player" player={@current_player} />
