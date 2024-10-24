@@ -8,15 +8,14 @@ defmodule BastrapWeb.Game.CurrentPlayerComponentTest do
   alias Bastrap.Games.Hand
   alias Bastrap.Games.Hand.Card, as: HandCard
 
-  @default_sample_hand_ranks [{1, 2}, {3, 4}, {5, 6}]
+  @default_sample_hand_ranks [{1, 2}, {3, 4}, {3, 6}, {2, 8}, {9, 10}]
 
   describe "CurrentPlayerComponent" do
     setup context do
       email = context[:email] || "display_name@example.com"
       user = AccountsFixtures.user_fixture(%{email: email})
       player = Player.new(user)
-      hand_ranks = context[:hand_ranks] || @default_sample_hand_ranks
-      hand = Hand.new(hand_ranks)
+      hand = context[:hand] || Hand.new(@default_sample_hand_ranks)
 
       player = %{player | hand: hand}
 
@@ -49,13 +48,25 @@ defmodule BastrapWeb.Game.CurrentPlayerComponentTest do
       end)
     end
 
-    @tag hand_ranks: []
+    @tag hand: Hand.new()
     test "renders no card elements for empty hand", %{html: html} do
       assert html =~ ~r{ol id="current-player-hand"[^>]*>\s*</ol>}s
       refute html =~ ~r{<li id="current-player-card-}
     end
 
-    @tag hand_ranks: [{7, 8}]
+    test "renders a disabled submit button when no cards are selected", %{html: html} do
+      assert html =~ ~r{<button[^>]*id="submit-selected-cards-button"[^>]*disabled[^>]*>}
+    end
+
+    @tag hand: %Hand{cards: [%HandCard{ranks: {1, 2}, selected: true, selectable: true}]}
+    test "renders an enabled submit button when cards are selected", %{html: html} do
+      refute html =~ ~r{<button[^>]*disabled}
+      assert html =~ ~r{<button[^>]*id="submit-selected-cards-button"}
+      assert html =~ ~r{phx-click="submit_turn"}
+      assert html =~ ~r{phx-target="#round-container"}
+    end
+
+    @tag hand: Hand.new([{7, 8}])
     test "renders correct number and values for hand with single card", %{html: html} do
       assert Enum.count(Regex.scan(~r{<li id="current-player-card-\d+"}, html)) == 1
 
