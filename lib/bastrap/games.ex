@@ -54,6 +54,19 @@ defmodule Bastrap.Games do
     end
   end
 
+  @spec submit_selected_cards(game_id_t(), user_t()) ::
+          {:ok, :submitting_cards} | {:error, :not_found}
+  def submit_selected_cards(game_id, user) do
+    case game_pid(game_id) do
+      {:ok, pid} ->
+        GenServer.cast(pid, {:submit_selected_cards, user})
+        {:ok, :submitting_cards}
+
+      _ ->
+        {:error, :not_found}
+    end
+  end
+
   @spec subscribe_to_game(game_id_t()) :: :ok | {:error, {:already_registered, pid()}}
   def subscribe_to_game(game_id) do
     PubSub.subscribe(Bastrap.PubSub, "game:#{game_id}")

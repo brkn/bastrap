@@ -195,6 +195,76 @@ defmodule BastrapWeb.Game.RoundComponentTest do
       assert view |> element("#current-player-card-#{invalid_card_index}") |> render_click() =~
                "Failed to select card: invalid_index"
     end
+
+    test "allows current turn player to submit valid card set", %{conn: conn, game: game} do
+      {:ok, view, _html} =
+        conn
+        |> log_in_user(current_turn_player(game).user)
+        |> live(~p"/games/#{game.id}")
+
+      current_player_hand_count =
+        view |> element("#current-player-hand") |> render() |> count_cards()
+
+      # Center is empty, any single selected card is valid and higher then center pile.
+      view |> current_player_card_element(0) |> render_click()
+      assert_receive {:game_update, _}, 500
+
+      # Submit the selected cards
+      view |> element("#submit-selected-cards-button") |> render_click()
+      assert_receive {:game_update, updated_game}, 500
+
+      # Validate state changes
+      assert updated_game.current_round.turn_player_index != game.current_round.turn_player_index
+
+      updated_current_player_hand_count =
+        view |> element("#current-player-hand") |> render() |> count_cards()
+
+      assert updated_current_player_hand_count == current_player_hand_count - 1
+    end
+
+    test "shows error when submitting invalid card set", %{conn: conn, game: game} do
+      center_pile = Bastrap.Games.CenterPile.new([{5, 6}, {5, 7}])
+      {:ok, game} = Bastrap.Games.setup_center_pile_for_test(game.id, center_pile)
+
+      {:ok, view, _html} =
+        conn
+        |> log_in_user(current_turn_player(game).user)
+        |> live(~p"/games/#{game.id}")
+
+      current_player_hand_count =
+        view |> element("#current-player-hand") |> render() |> count_cards()
+
+      # Single card can never beat the center pair
+      view |> current_player_card_element(0) |> render_click()
+      assert_receive {:game_update, _}, 500
+
+      # Try to submit invalid set
+      view |> element("#submit-selected-cards-button") |> render_click()
+      assert_receive {:game_error, :card_set_not_higher}, 500
+
+      updated_current_player_hand_count =
+        view |> element("#current-player-hand") |> render() |> count_cards()
+
+      assert current_player_hand_count == updated_current_player_hand_count
+    end
+
+    test "prevents non-turn player from submitting cards", %{conn: conn, game: game} do
+      non_turn_player =
+        game.current_round.players
+        |> Enum.reject(&(&1.user.id == current_turn_player(game).user.id))
+        |> List.first()
+
+      {:ok, view, _html} =
+        conn
+        |> log_in_user(non_turn_player.user)
+        |> live(~p"/games/#{game.id}")
+
+      view |> current_player_card_element(0) |> render_click()
+      assert_receive {:game_update, _}, 500
+
+      view |> element("#submit-selected-cards-button") |> render_click()
+      assert_receive {:game_error, :not_your_turn}, 500
+    end
   end
 
   defp current_player_card_element(view, card_index) do
@@ -243,5 +313,9 @@ defmodule BastrapWeb.Game.RoundComponentTest do
     non_turn_player_index = rem(turn_player_index + 1, length(players))
 
     players |> Enum.at(non_turn_player_index)
+  end
+
+  defp count_cards(html) do
+    Regex.scan(~r{id="current-player-card-\d+"}, html) |> length()
   end
 end

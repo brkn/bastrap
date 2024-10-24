@@ -72,6 +72,8 @@ defmodule Bastrap.Games.Player do
     %{player | hand: Hand.remove_selected_cards(player.hand)}
   end
 
+  def selected_card_ranks(player), do: Hand.selected_card_set(player.hand)
+
   defp display_name(user) do
     user.email |> String.split("@") |> List.first()
   end

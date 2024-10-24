@@ -6,6 +6,8 @@ defmodule Bastrap.Games.RoundTest do
   alias Bastrap.Games.Hand
   alias Bastrap.AccountsFixtures
 
+  doctest Bastrap.Games.Round
+
   describe "Round.new/2" do
     setup do
       players =

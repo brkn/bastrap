@@ -62,7 +62,7 @@ defmodule BastrapWeb.Game.CurrentPlayerComponentTest do
     test "renders an enabled submit button when cards are selected", %{html: html} do
       refute html =~ ~r{<button[^>]*disabled}
       assert html =~ ~r{<button[^>]*id="submit-selected-cards-button"}
-      assert html =~ ~r{phx-click="submit_turn"}
+      assert html =~ ~r{phx-click="submit_selected_cards"}
       assert html =~ ~r{phx-target="#round-container"}
     end
 

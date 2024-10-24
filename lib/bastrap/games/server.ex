@@ -95,44 +95,37 @@ defmodule Bastrap.Games.Server do
     end
   end
 
-  # def handle_cast({:select_card, user, %{card_index: card_index, player_id: player_id}}, game), do: :asd
+  def handle_cast({:submit_selected_cards, user}, game) do
+    with current_player <- Round.current_turn_player(game.current_round),
+         :ok <- validate_player_turn(current_player, user),
+         {:ok, updated_round, _score} <- Round.submit_selected_cards(game.current_round) do
+      case Round.should_end?(updated_round) do
+        true ->
+          end_round(updated_round, game)
 
-  # Not sure if we ever need end_round, after each action we shall check if round is ended
-  # TODO: Next dealer finding logic is inside this extract it
-  # def handle_cast(:end_round, game) do
-  #   last_dealer_index = game.current_round.dealer_index
-  #   new_dealer_index = rem(last_dealer_index + 1, length(game.players))
+        false ->
+          updated_round
+          |> Round.pass_turn()
+          |> then(&%{game | current_round: &1})
+      end
+      |> then(fn updated_game ->
+        broadcast_update(updated_game)
+        {:noreply, updated_game}
+      end)
+    else
+      {:error, reason} ->
+        broadcast_game_error(game, reason)
+        {:noreply, game}
+    end
+  end
 
-  #   # current_round = Round.new(game.players, new_dealer_index)
-
-  #   # TODO: Check if game is ended, if so, state is :ended
-  #   new_game = %{game | state: :in_progress, current_round: current_round}
-
-  #   broadcast_update(new_game)
-
-  #   {:noreply, new_game}
-  # end
-
-  # TODO: handle cancellation of the turn action.
-  # Maybe not for the first version of the game?
-
-  # TODO: add method called handle_select_card
-  # def handle_cast({:select_card, user, card_index}, game) do
-  # # validate if the player's the current_player
-  # # validate if card is selectable
-  # # if invalid return error
-  # # if valid then mark the card as selected and assign new_hand to the user
-
-  # TODO: add method called handle_submit.
-  # Maybe signature would look like this:
-  # def handle_cast({:submit_turn, user}, game) do
-  # # validate via creating a card_set from the selected cards of the player's hand.
-  # # validate if the player's the current_player
-  # # validate if selected card indexes are consecutive.
-  # # if invalid return error
-  # # if valid then filters over the hand's of the player and filter out the selected cards
-  # Submiting removes all selected cards upon succcess message from the server
-  # This means we should track the selected cards somehow
+  defp validate_player_turn(current_player, user) do
+    if current_player.user.id == user.id do
+      :ok
+    else
+      {:error, :not_your_turn}
+    end
+  end
 
   defp via_tuple(game_id) do
     {:via, Registry, {Bastrap.Games.Registry, game_id}}
@@ -155,12 +148,17 @@ defmodule Bastrap.Games.Server do
   end
 
   defp find_card_owner(%{current_round: %{players: players}}, cards_player_id) do
-    owner = players |> Enum.find(fn player -> player.user.id == cards_player_id end)
-
-    case owner do
+    players
+    |> Enum.find(fn player -> player.user.id == cards_player_id end)
+    |> case do
       nil -> {:error, "Player not found"}
-      _ -> {:ok, owner}
+      owner -> {:ok, owner}
     end
+  end
+
+  defp end_round(round, game) do
+    # TODO: Implement end round logic
+    game
   end
 
   # TODO: delete this, I hate this.

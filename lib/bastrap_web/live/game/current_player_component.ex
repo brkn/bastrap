@@ -46,7 +46,7 @@ defmodule BastrapWeb.Game.CurrentPlayerComponent do
       </ol>
       <button
         id="submit-selected-cards-button"
-        phx-click="submit_turn"
+        phx-click="submit_selected_cards"
         phx-target="#round-container"
         disabled={!@has_selected_cards?}
         class={@submit_selected_cards_button_styling}

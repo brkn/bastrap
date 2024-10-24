@@ -50,6 +50,18 @@ defmodule BastrapWeb.Game.RoundComponent do
     """
   end
 
+  def handle_event("submit_selected_cards", _, socket) do
+    %{game_id: game_id, current_user: current_user} = socket.assigns
+
+    case Games.submit_selected_cards(game_id, current_user) do
+      {:ok, :submitting_cards} ->
+        {:noreply, socket}
+
+      {:error, reason} ->
+        {:noreply, put_flash(socket, :error, "Failed to submit cards: #{reason}")}
+    end
+  end
+
   # TODO: handle this
   def handle_event("select_card", %{"index" => index, "player-id" => "center_pile"}, socket) do
     IO.inspect("Clicked on center pile card #{index}")

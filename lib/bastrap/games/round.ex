@@ -110,4 +110,97 @@ defmodule Bastrap.Games.Round do
       _ -> false
     end)
   end
+
+  @doc """
+  Validates if the current turn player's selected cards can beat the center pile.
+  If valid, replaces the center pile with selected cards and updates player's score.
+
+  ## Examples
+      iex> player = %Bastrap.Games.Player{current_score: 0, hand: %Bastrap.Games.Hand{cards: [
+      ...>   %Bastrap.Games.Hand.Card{ranks: {2, 3}, selected: true},
+      ...>   %Bastrap.Games.Hand.Card{ranks: {2, 4}, selected: true}
+      ...> ]}}
+      iex> round = %Bastrap.Games.Round{
+      ...>   center_pile: %Bastrap.Games.CenterPile{cards: [
+      ...>     %Bastrap.Games.Hand.Card{ranks: {1, 2}, selected: false},
+      ...>     %Bastrap.Games.Hand.Card{ranks: {1, 3}, selected: false}
+      ...>   ]},
+      ...>   turn_player_index: 0,
+      ...>   players: [player]
+      ...> }
+      iex> {:ok, updated_round, score} = Bastrap.Games.Round.submit_selected_cards(round)
+      iex> {updated_round.center_pile.cards |> Enum.map(& &1.ranks), score}
+      {[{2, 3}, {2, 4}], 2}
+
+      iex> player = %Bastrap.Games.Player{current_score: 0, hand: %Bastrap.Games.Hand{cards: [
+      ...>   %Bastrap.Games.Hand.Card{ranks: {2, 3}, selected: true},
+      ...>   %Bastrap.Games.Hand.Card{ranks: {2, 4}, selected: true}
+      ...> ]}}
+      iex> round = %Bastrap.Games.Round{
+      ...>   center_pile: %Bastrap.Games.CenterPile{cards: [
+      ...>     %Bastrap.Games.Hand.Card{ranks: {3, 4}, selected: false},
+      ...>     %Bastrap.Games.Hand.Card{ranks: {3, 5}, selected: false}
+      ...>   ]},
+      ...>   turn_player_index: 0,
+      ...>   players: [player]
+      ...> }
+      iex> Bastrap.Games.Round.submit_selected_cards(round)
+      {:error, :card_set_not_higher}
+
+      iex> player = %Bastrap.Games.Player{current_score: 0, hand: %Bastrap.Games.Hand{cards: [
+      ...>   %Bastrap.Games.Hand.Card{ranks: {1, 2}, selected: true}
+      ...> ]}}
+      iex> round = %Bastrap.Games.Round{
+      ...>   center_pile: %Bastrap.Games.CenterPile{cards: []},
+      ...>   turn_player_index: 0,
+      ...>   players: [player]
+      ...> }
+      iex> {:ok, updated_round, score} = Bastrap.Games.Round.submit_selected_cards(round)
+      iex> {updated_round.center_pile.cards |> Enum.map(& &1.ranks), score}
+      {[{1, 2}], 0}
+  """
+  @spec submit_selected_cards(t()) ::
+          {:ok, t(), non_neg_integer()} | {:error, :card_set_not_higher}
+  def submit_selected_cards(%__MODULE__{center_pile: center_pile} = round) do
+    if selected_cards_beat_center?(round) do
+      updated_player =
+        current_turn_player(round)
+        |> Player.increase_score(CenterPile.size(center_pile))
+        |> Player.remove_selected_cards()
+
+      round
+      |> replace_center_pile_with_selected_cards()
+      |> replace_turn_player(updated_player)
+      |> then(fn updated_round ->
+        {:ok, updated_round, current_turn_player(updated_round).current_score}
+      end)
+    else
+      {:error, :card_set_not_higher}
+    end
+  end
+
+  defp selected_cards_beat_center?(round) do
+    center_pile_ranks = round.center_pile.cards |> Enum.map(& &1.ranks)
+
+    selected_card_ranks =
+      round
+      |> current_turn_player()
+      |> Player.selected_card_ranks()
+
+    Deck.CardSet.higher_than?(selected_card_ranks, center_pile_ranks)
+  end
+
+  defp replace_turn_player(%{turn_player_index: index, players: players} = round, updated_player) do
+    players
+    |> List.replace_at(index, updated_player)
+    |> then(fn updated_players -> %{round | players: updated_players} end)
+  end
+
+  defp replace_center_pile_with_selected_cards(round) do
+    round
+    |> current_turn_player()
+    |> Player.selected_card_ranks()
+    |> CenterPile.new()
+    |> then(fn new_center_pile -> %__MODULE__{round | center_pile: new_center_pile} end)
+  end
 end
