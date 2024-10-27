@@ -42,6 +42,7 @@ defmodule BastrapWeb.Game.RoundComponent do
           module={CenterPileComponent}
           id="center-pile"
           center_pile={@round.center_pile}
+          style="grid-area: game;"
         />
       </div>
 
