@@ -98,7 +98,7 @@ defmodule Bastrap.Games.Hand do
   end
 
   @doc """
-  Removes the selected cards from the hand.
+  Returns the selected cards as a card set.
 
   ## Examples
     iex> hand = Bastrap.Games.Hand.new([{1, 2}, {3, 4}, {5, 6}])
