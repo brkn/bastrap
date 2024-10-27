@@ -24,7 +24,7 @@ defmodule BastrapWeb.Game.CardComponent do
       id={@id}
       {@rest}
       class={[
-        "flex-shrink-0 w-10 h-14 rounded-md relative shadow",
+        "flex-shrink-0 w-10 h-14 rounded-md relative shadow-md border border-white/30",
         @background_color,
         @card.selected && "ring-2 ring-yellow-400",
         @card.selectable && "cursor-pointer hover:ring-2 hover:ring-green-400"
