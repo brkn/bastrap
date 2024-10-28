@@ -241,7 +241,7 @@ defmodule BastrapWeb.Game.RoundComponentTest do
 
       # Try to submit invalid set
       view |> element("#submit-selected-cards-button") |> render_click()
-      assert_receive {:game_error, :card_set_not_higher}, 500
+      assert_receive {:game_error, "Selected cards must be higher than center pile"}, 500
 
       updated_current_player_hand_count =
         view |> element("#current-player-hand") |> render() |> count_cards()
@@ -264,7 +264,7 @@ defmodule BastrapWeb.Game.RoundComponentTest do
       assert_receive {:game_update, _}, 500
 
       view |> element("#submit-selected-cards-button") |> render_click()
-      assert_receive {:game_error, :not_your_turn}, 500
+      assert_receive {:game_error, "Not your turn"}, 500
     end
   end
 

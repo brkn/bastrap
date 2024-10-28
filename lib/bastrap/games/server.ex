@@ -2,7 +2,7 @@ defmodule Bastrap.Games.Server do
   use GenServer
 
   alias Phoenix.PubSub
-  alias Bastrap.Games.{Player, Round, Hand}
+  alias Bastrap.Games.Game
 
   def start_link(admin) do
     game_id = Ecto.UUID.generate()
@@ -10,82 +10,53 @@ defmodule Bastrap.Games.Server do
   end
 
   def init({admin, game_id}) do
-    admin_player = Player.new(admin)
-
-    game = %{
-      id: game_id,
-      state: :not_started,
-      admin: admin_player,
-      players: [admin_player],
-      current_round: nil
-    }
-
+    game = Game.new(game_id, admin)
     broadcast_update(game)
-
     {:ok, game}
+  end
+
+  # Test only
+  if Mix.env() == :test do
+    def handle_call({:setup_center_pile_for_test, center_pile}, _from, game) do
+      updated_game =
+        game
+        |> put_in([Access.key(:current_round), Access.key(:center_pile)], center_pile)
+
+      broadcast_update(updated_game)
+      {:reply, {:ok, updated_game}, updated_game}
+    end
   end
 
   def handle_call(:get_id, _from, game), do: {:reply, game.id, game}
   def handle_call(:get_game, _from, game), do: {:reply, game, game}
 
   def handle_cast({:join, user}, %{state: :not_started} = game) do
-    if Enum.member?(game.players, user) do
-      {:noreply, game}
+    with {:ok, updated_game} <- Game.join(game, user) do
+      broadcast_update(updated_game)
+      {:noreply, updated_game}
     else
-      new_player = Player.new(user)
-      new_players = game.players ++ [new_player]
-      new_game = %{game | players: new_players}
-
-      broadcast_update(new_game)
-
-      {:noreply, new_game}
+      {:error, reason} ->
+        broadcast_game_error(game, reason)
+        {:noreply, game}
     end
-  end
-
-  def handle_cast({:start_game, _user}, game) when length(game.players) < 3 do
-    broadcast_game_error(game, "Need at least 3 players to start the game")
-
-    {:noreply, game}
-  end
-
-  def handle_cast({:start_game, _user}, game) when length(game.players) > 5 do
-    broadcast_game_error(game, "Can't have more than 5 players")
-
-    {:noreply, game}
   end
 
   def handle_cast({:start_game, user}, game) do
-    if game.admin.user != user do
-      {:noreply, game}
+    with :ok <- authorize_user_for_starting_game(game, user),
+         {:ok, updated_game} <- Game.start(game, user) do
+      broadcast_update(updated_game)
+      {:noreply, updated_game}
     else
-      # Why not handle dealer_index at Round.new method?
-      # Because at next round we want to make the dealer the next player
-      dealer_index = Enum.random(0..(length(game.players) - 1))
-      current_round = Round.new(game.players, dealer_index)
-
-      new_game = %{game | state: :in_progress, current_round: current_round}
-      broadcast_update(new_game)
-
-      {:noreply, new_game}
+      {:error, reason} ->
+        broadcast_game_error(game, reason)
+        {:noreply, game}
     end
   end
 
-  def handle_cast(
-        {:select_card, user, %{card_index: card_index, player_id: cards_player_id}},
-        %{state: :in_progress} = game
-      ) do
-    with {:ok, cards_owner} <- find_card_owner(game, cards_player_id),
-         :ok <- authorize_player_for_select_card(user, cards_owner),
-         {:ok, updated_hand} = Hand.toggle_card_selection(cards_owner.hand, card_index) do
-      updated_game =
-        game.current_round.players
-        |> Enum.map(fn
-          %{user: %{id: ^cards_player_id}} -> %{cards_owner | hand: updated_hand}
-          player -> player
-        end)
-        |> then(fn new_players -> %{game.current_round | players: new_players} end)
-        |> then(fn updated_round -> %{game | current_round: updated_round} end)
-
+  def handle_cast({:select_card, user, card_position}, %{state: :in_progress} = game) do
+    with {:ok, card_owner} <- Game.find_player_by_id(game, card_position.player_id),
+         :ok <- authorize_player_for_select_card(user, card_owner),
+         {:ok, updated_game} <- Game.select_card(game, card_position) do
       broadcast_update(updated_game)
       {:noreply, updated_game}
     else
@@ -96,34 +67,16 @@ defmodule Bastrap.Games.Server do
   end
 
   def handle_cast({:submit_selected_cards, user}, game) do
-    with current_player <- Round.current_turn_player(game.current_round),
-         :ok <- validate_player_turn(current_player, user),
-         {:ok, updated_round, _score} <- Round.submit_selected_cards(game.current_round) do
-      case Round.should_end?(updated_round) do
-        true ->
-          end_round(updated_round, game)
-
-        false ->
-          updated_round
-          |> Round.pass_turn()
-          |> then(&%{game | current_round: &1})
-      end
-      |> then(fn updated_game ->
-        broadcast_update(updated_game)
-        {:noreply, updated_game}
-      end)
+    with {:ok, current_player} <- Game.find_player_by_id(game, user.id),
+         {:ok, turn_player} <- {:ok, Game.current_turn_player(game)},
+         :ok <- authorize_player_for_submit_cards(current_player, turn_player),
+         {:ok, updated_game, _score} <- Game.submit_selected_cards(game) do
+      broadcast_update(updated_game)
+      {:noreply, updated_game}
     else
       {:error, reason} ->
         broadcast_game_error(game, reason)
         {:noreply, game}
-    end
-  end
-
-  defp validate_player_turn(current_player, user) do
-    if current_player.user.id == user.id do
-      :ok
-    else
-      {:error, :not_your_turn}
     end
   end
 
@@ -136,37 +89,33 @@ defmodule Bastrap.Games.Server do
   end
 
   defp broadcast_game_error(game, message) do
-    PubSub.broadcast(Bastrap.PubSub, "game:#{game.id}", {:game_error, message})
+    PubSub.broadcast(Bastrap.PubSub, "game:#{game.id}", {:game_error, humanize_error(message)})
   end
 
-  defp authorize_player_for_select_card(user, cards_owner) do
-    if user.id == cards_owner.user.id do
+  defp authorize_player_for_select_card(user, card_owner) do
+    if user.id == card_owner.user.id,
+      do: :ok,
+      else: {:error, "You can only select your own cards"}
+  end
+
+  defp authorize_user_for_starting_game(game, user) do
+    if game.admin.user.id == user.id, do: :ok, else: {:error, :not_admin}
+  end
+
+  defp authorize_player_for_submit_cards(current_player, turn_player) do
+    if current_player.user.id == turn_player.user.id do
       :ok
     else
-      {:error, "You can only select your own cards"}
+      {:error, :not_your_turn}
     end
   end
 
-  defp find_card_owner(%{current_round: %{players: players}}, cards_player_id) do
-    players
-    |> Enum.find(fn player -> player.user.id == cards_player_id end)
-    |> case do
-      nil -> {:error, "Player not found"}
-      owner -> {:ok, owner}
-    end
-  end
-
-  defp end_round(round, game) do
-    # TODO: Implement end round logic
-    game
-  end
-
-  # TODO: delete this, I hate this.
-  if Mix.env() == :test do
-    def handle_call({:setup_center_pile_for_test, center_pile}, _from, game) do
-      updated_game = put_in(game.current_round.center_pile, center_pile)
-      broadcast_update(updated_game)
-      {:reply, {:ok, updated_game}, updated_game}
-    end
-  end
+  defp humanize_error(:not_enough_players), do: "Need at least 3 players to start the game"
+  defp humanize_error(:too_many_players), do: "Can't have more than 5 players"
+  defp humanize_error(:not_your_turn), do: "Not your turn"
+  defp humanize_error(:card_set_not_higher), do: "Selected cards must be higher than center pile"
+  defp humanize_error(:card_not_selectable), do: "Card is not selectable"
+  defp humanize_error(:invalid_index), do: "Invalid card index"
+  defp humanize_error(error) when is_binary(error), do: error
+  defp humanize_error(_), do: "An error occurred"
 end
