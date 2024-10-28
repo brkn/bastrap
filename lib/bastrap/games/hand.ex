@@ -34,6 +34,28 @@ defmodule Bastrap.Games.Hand do
   end
 
   @doc """
+  Converts a hand to an opponent's view where all cards are face down and not selectable.
+  Used to prevent players from seeing other players' cards.
+
+  ## Examples
+      iex> hand = %Bastrap.Games.Hand{cards: [
+      ...>   %Bastrap.Games.Hand.Card{ranks: {1, 2}, selected: false, selectable: true},
+      ...>   %Bastrap.Games.Hand.Card{ranks: {3, 4}, selected: true, selectable: true}
+      ...> ]}
+      iex> Bastrap.Games.Hand.to_opponent_hand(hand)
+      %Bastrap.Games.Hand{cards: [
+        %Bastrap.Games.Hand.Card{ranks: :face_down, selected: false, selectable: false},
+        %Bastrap.Games.Hand.Card{ranks: :face_down, selected: true, selectable: false}
+      ]}
+  """
+  @spec to_opponent_hand(t()) :: t()
+  def to_opponent_hand(%__MODULE__{cards: cards} = hand) do
+    cards
+    |> Enum.map(fn hand_card -> %{hand_card | ranks: :face_down, selectable: false} end)
+    |> then(&%{hand | cards: &1})
+  end
+
+  @doc """
   Selects a card in the hand at the given index.
 
   ## Examples

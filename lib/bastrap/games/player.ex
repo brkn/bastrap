@@ -74,6 +74,37 @@ defmodule Bastrap.Games.Player do
 
   def selected_card_ranks(player), do: Hand.selected_card_set(player.hand)
 
+  @doc """
+  Converts a player's view to an opponent's view by hiding their card ranks.
+  Keeps the player's metadata but makes their hand face-down and unselectable.
+
+  ## Examples
+      iex> hand = %Bastrap.Games.Hand{cards: [
+      ...>   %Bastrap.Games.Hand.Card{ranks: {1, 2}, selected: false, selectable: true}
+      ...> ]}
+      iex> player = %Bastrap.Games.Player{
+      ...>   user: %{id: 1, email: "test@example.com"},
+      ...>   display_name: "test",
+      ...>   hand: hand,
+      ...>   current_score: 10
+      ...> }
+      iex> Bastrap.Games.Player.to_opponent_player(player)
+      %Bastrap.Games.Player{
+        user: %{id: 1, email: "test@example.com"},
+        current_score: 10,
+        display_name: "test",
+        hand: %Bastrap.Games.Hand{cards: [
+          %Bastrap.Games.Hand.Card{ranks: :face_down, selected: false, selectable: false}
+        ]}
+      }
+  """
+  @spec to_opponent_player(t()) :: t()
+  def to_opponent_player(player) do
+    player.hand
+    |> Hand.to_opponent_hand()
+    |> then(&%{player | hand: &1})
+  end
+
   defp display_name(user) do
     user.email |> String.split("@") |> List.first()
   end

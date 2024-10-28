@@ -4,6 +4,7 @@ defmodule BastrapWeb.Game.RoundComponent do
   alias BastrapWeb.Game.{OpponentComponent, CurrentPlayerComponent, CenterPileComponent}
   alias Bastrap.Games
   alias Bastrap.Games.Round
+  alias Bastrap.Games.Player
 
   def render(assigns) do
     %{
@@ -11,13 +12,13 @@ defmodule BastrapWeb.Game.RoundComponent do
       current_user: current_user
     } = assigns
 
-    {current_player, other_players} = partition_players(round.players, current_user)
+    {current_player, opponents} = partition_players(round.players, current_user)
 
     assigns =
       assign(
         assigns,
         current_player: current_player,
-        other_players: other_players,
+        opponents: opponents,
         current_turn_player: Round.current_turn_player(round)
       )
 
@@ -34,7 +35,7 @@ defmodule BastrapWeb.Game.RoundComponent do
         'opp1 game opp2'
         'opp3 game opp4';"
       >
-        <%= for player <- @other_players do %>
+        <%= for player <- @opponents do %>
           <OpponentComponent.render id={"opponent-#{player.display_name}"} player={player} />
         <% end %>
 
@@ -89,6 +90,10 @@ defmodule BastrapWeb.Game.RoundComponent do
     {[current_player], other_players} =
       players |> Enum.split_with(&(&1.user.id == current_user.id))
 
-    {current_player, other_players}
+    opponents =
+      other_players
+      |> Enum.map(&Player.to_opponent_player(&1))
+
+    {current_player, opponents}
   end
 end

@@ -222,6 +222,7 @@ defmodule BastrapWeb.Game.RoundComponentTest do
       assert updated_current_player_hand_count == current_player_hand_count - 1
     end
 
+    @tag :flaky
     test "shows error when submitting invalid card set", %{conn: conn, game: game} do
       center_pile = Bastrap.Games.CenterPile.new([{5, 6}, {5, 7}])
       {:ok, game} = Bastrap.Games.setup_center_pile_for_test(game.id, center_pile)
@@ -267,6 +268,47 @@ defmodule BastrapWeb.Game.RoundComponentTest do
     end
   end
 
+  # TODO: Add test case - Assert the current turn player is indicated on screen.
+
+  describe "player visibility" do
+    # TODO: Add test case - Assert exact number of face-down cards for opponents
+
+    setup context do
+      # TODO: context[:user_count] feels awkward - Try using pattern matching in setup's params instead
+      num_of_users = context[:user_count] || 3
+
+      %{users: [opponent | _], game: game} = create_game(num_of_users)
+
+      {:ok, view, _html} =
+        build_conn()
+        |> log_in_user(opponent)
+        |> live(~p"/games/#{game.id}")
+
+      %{view: view}
+    end
+
+    test "renders opponent cards as face down", %{view: view} do
+      opponent_hand = view |> element("#opponent-hand-player-2") |> render()
+
+      refute opponent_hand =~ ~r{<p[^>]*>\s*\d+\s*</p>}
+      assert opponent_hand =~ ~r{class="[^"]*bg-blue-500[^"]*"}
+    end
+
+    test "opponent cards are not selectable", %{view: view} do
+      opponent_hand = view |> element("#opponent-hand-player-2") |> render()
+
+      refute opponent_hand =~ ~r{cursor-pointer}
+      refute opponent_hand =~ ~r{phx-click="select_card"}
+    end
+
+    test "current player can see their own cards", %{view: view} do
+      current_player_hand = view |> element("#current-player-hand") |> render()
+
+      assert current_player_hand =~ ~r{<p[^>]*>\s*\d+\s*</p>}
+      refute current_player_hand =~ ~r{bg-blue-500}
+    end
+  end
+
   defp current_player_card_element(view, card_index) do
     view |> element("#current-player-card-#{card_index}")
   end
@@ -279,11 +321,19 @@ defmodule BastrapWeb.Game.RoundComponentTest do
     card_element |> render() =~ "ring-2 ring-yellow-400"
   end
 
+  # TODO:
+  # 1. Move this to a fixture module or something/
+  # 2. Has multiple responsibilities. Could be split into smaller functions
   defp create_game(num_of_users) do
     num_of_non_admin_users = num_of_users - 1
 
     admin = AccountsFixtures.user_fixture(%{email: "admin_user@example.com"})
-    users = 1..num_of_non_admin_users |> Enum.map(fn _ -> AccountsFixtures.user_fixture() end)
+
+    users =
+      1..num_of_non_admin_users
+      |> Enum.map(fn index ->
+        AccountsFixtures.user_fixture(%{email: "player-#{index}@example.com"})
+      end)
 
     {:ok, %{id: game_id, pid: _game_pid}} = Games.create_game(admin)
 
@@ -316,6 +366,6 @@ defmodule BastrapWeb.Game.RoundComponentTest do
   end
 
   defp count_cards(html) do
-    Regex.scan(~r{id="current-player-card-\d+"}, html) |> length()
+    Regex.scan(~r{<li[^>]*id="current-player-card-\d+"[^>]*>}, html) |> length()
   end
 end
