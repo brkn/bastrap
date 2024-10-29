@@ -5,6 +5,9 @@ defmodule BastrapWeb.Game.RoundComponentTest do
 
   alias Bastrap.AccountsFixtures
   alias Bastrap.Games
+  alias Bastrap.Games.Hand
+
+  alias Bastrap.GameFixtures
 
   alias Bastrap.GameFixtures
 
@@ -270,6 +273,33 @@ defmodule BastrapWeb.Game.RoundComponentTest do
 
       view |> element("#submit-selected-cards-button") |> render_click()
       assert_receive {:game_error, "Not your turn"}, 500
+    end
+
+    test "ends round when a player empties their hand", %{
+      conn: conn,
+      game: %{current_round: %{turn_player_index: turn_player_index}} = game
+    } do
+      mocked_game =
+        game
+        |> GameFixtures.update_player(turn_player_index, fn player ->
+          %{player | hand: Hand.new([{9, 10}])}
+        end)
+        |> Games.put_game()
+
+      # assert_receive {:game_update, mocked_game}, 500
+
+      {:ok, view, _html} =
+        conn
+        |> log_in_user(current_turn_player(mocked_game).user)
+        |> live(~p"/games/#{game.id}")
+
+      view |> current_player_card_element(0) |> render_click()
+      assert_receive {:game_update, _}, 500
+
+      view |> element("#submit-selected-cards-button") |> render_click()
+      assert_receive {:game_update, updated_game}, 500
+
+      assert updated_game.state == :scoring
     end
   end
 

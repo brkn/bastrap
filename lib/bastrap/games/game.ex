@@ -6,7 +6,7 @@ defmodule Bastrap.Games.Game do
 
   alias Bastrap.Games.{Player, Round, Hand}
 
-  @type game_state :: :not_started | :in_progress
+  @type game_state :: :not_started | :in_progress | :scoring
 
   @type t :: %__MODULE__{
           id: String.t(),
@@ -167,7 +167,7 @@ defmodule Bastrap.Games.Game do
     case Round.submit_selected_cards(game.current_round) do
       {:ok, updated_round, score} ->
         case Round.should_end?(updated_round) do
-          true -> end_round(game, updated_round, score)
+          true -> handle_end_round(game, updated_round, score)
           false -> handle_continue_round(game, updated_round, score)
         end
 
@@ -212,10 +212,8 @@ defmodule Bastrap.Games.Game do
     |> then(fn updated_round -> %{game | current_round: updated_round} end)
   end
 
-  defp end_round(game, _round, score) do
-    # TODO: Calculate final round scores
-    # TODO: Setup next round with new dealer
-    {:ok, game, score}
+  defp handle_end_round(game, _round, score) do
+    {:ok, %{game | state: :scoring}, score}
   end
 
   defp handle_continue_round(game, round, score) do

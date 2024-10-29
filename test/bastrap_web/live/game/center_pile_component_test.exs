@@ -4,10 +4,10 @@ defmodule BastrapWeb.Game.CenterPileComponentTest do
   import Phoenix.LiveViewTest
 
   alias Bastrap.AccountsFixtures
+  alias Bastrap.GameFixtures
+
   alias Bastrap.Games
   # alias Bastrap.Games.CenterPile
-
-  alias Bastrap.GameFixtures
 
   @default_center_pile_ranks [{1, 2}, {3, 4}]
 
