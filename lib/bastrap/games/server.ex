@@ -15,20 +15,9 @@ defmodule Bastrap.Games.Server do
     {:ok, game}
   end
 
-  # Test only
-  if Mix.env() == :test do
-    def handle_call({:setup_center_pile_for_test, center_pile}, _from, game) do
-      updated_game =
-        game
-        |> put_in([Access.key(:current_round), Access.key(:center_pile)], center_pile)
-
-      broadcast_update(updated_game)
-      {:reply, {:ok, updated_game}, updated_game}
-    end
-  end
-
   def handle_call(:get_id, _from, game), do: {:reply, game.id, game}
   def handle_call(:get_game, _from, game), do: {:reply, game, game}
+  def handle_call({:put_game, new_game}, _, _game), do: {:reply, new_game, new_game}
 
   def handle_cast({:join, user}, %{state: :not_started} = game) do
     with {:ok, updated_game} <- Game.join(game, user) do

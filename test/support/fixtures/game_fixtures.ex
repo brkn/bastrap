@@ -4,7 +4,7 @@ defmodule Bastrap.GameFixtures do
   alias Phoenix.PubSub
 
   def new(opts \\ []) do
-    admin = opts[:admin] || AccountsFixtures.user_fixture()
+    admin = opts[:admin] || AccountsFixtures.user_fixture(%{email: "admin_email@example.com"})
     id = opts[:id] || Ecto.UUID.generate()
 
     Game.new(id, admin)

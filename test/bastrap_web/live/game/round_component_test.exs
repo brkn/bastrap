@@ -2,8 +2,11 @@ defmodule BastrapWeb.Game.RoundComponentTest do
   use BastrapWeb.ConnCase, async: true
 
   import Phoenix.LiveViewTest
+
   alias Bastrap.AccountsFixtures
   alias Bastrap.Games
+
+  alias Bastrap.GameFixtures
 
   describe "RoundComponent rendering" do
     setup context do
@@ -224,8 +227,10 @@ defmodule BastrapWeb.Game.RoundComponentTest do
 
     @tag :flaky
     test "shows error when submitting invalid card set", %{conn: conn, game: game} do
-      center_pile = Bastrap.Games.CenterPile.new([{5, 6}, {5, 7}])
-      {:ok, game} = Bastrap.Games.setup_center_pile_for_test(game.id, center_pile)
+      game =
+        game
+        |> GameFixtures.with_center_pile([{5, 6}, {5, 7}])
+        |> Games.put_game()
 
       {:ok, view, _html} =
         conn

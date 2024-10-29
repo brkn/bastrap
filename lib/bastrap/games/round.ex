@@ -105,10 +105,7 @@ defmodule Bastrap.Games.Round do
     round
     |> current_turn_player()
     |> then(fn player -> player.hand.cards end)
-    |> then(fn
-      [] -> true
-      _ -> false
-    end)
+    |> Enum.empty?()
   end
 
   @doc """
