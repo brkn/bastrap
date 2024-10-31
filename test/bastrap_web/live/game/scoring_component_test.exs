@@ -22,7 +22,7 @@ defmodule BastrapWeb.Game.ScoringComponentTest do
           %{player | current_score: 5, hand: %Bastrap.Games.Hand{cards: []}}
         end)
         |> GameFixtures.update_player(1, fn player ->
-          %{player | current_score: 2, hand: Bastrap.Games.Hand.new([{4,5}, {1,2}])}
+          %{player | current_score: 2, hand: Bastrap.Games.Hand.new([{4, 5}, {1, 2}])}
         end)
         |> Map.put(:state, :scoring)
         |> Bastrap.Games.put_game()
