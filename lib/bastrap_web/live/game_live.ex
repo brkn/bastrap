@@ -13,6 +13,7 @@ defmodule BastrapWeb.GameLive do
     end
   end
 
+  # TODO: use game.id for the components instead of current_user.id
   def render(assigns) do
     ~H"""
     <%= case @game.state do %>

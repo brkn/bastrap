@@ -25,12 +25,18 @@ defmodule Bastrap.GameFixtures do
     put_in(game.current_round.center_pile, CenterPile.new(ranks))
   end
 
+  def update_player_total_score(game, player_index, score) when is_integer(player_index) do
+    game.players
+    |> List.update_at(player_index, &%{&1 | current_score: score})
+    |> then(&%{game | players: &1})
+  end
+
   def update_player(game, player_index, update_fn)
       when is_integer(player_index) and is_function(update_fn, 1) do
-    put_in(
-      game.current_round.players,
-      List.update_at(game.current_round.players, player_index, update_fn)
-    )
+    game.current_round.players
+    |> List.update_at(player_index, update_fn)
+    |> then(&%{game.current_round | players: &1})
+    |> then(&%{game | current_round: &1})
   end
 
   def subscribe(game) do
@@ -54,7 +60,7 @@ defmodule Bastrap.GameFixtures do
 
   defp add_players(game, count) do
     1..count
-    |> Enum.map(fn _ -> AccountsFixtures.user_fixture() end)
+    |> Enum.map(fn index -> AccountsFixtures.user_fixture(%{email: "p#{index}@example.com"}) end)
     |> Enum.reduce(game, fn user, game ->
       {:ok, game} = Game.join(game, user)
       game
