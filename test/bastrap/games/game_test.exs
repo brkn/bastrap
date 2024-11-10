@@ -234,6 +234,48 @@ defmodule Bastrap.Games.GameTest do
     end
   end
 
+  describe "start_next_round/2" do
+    setup do
+      game =
+        GameFixtures.new()
+        |> GameFixtures.start_game(player_count: 3, dealer_index: 3)
+        |> Map.put(:state, :scoring)
+
+      non_admin_user = game.players |> List.last() |> then(& &1.user)
+
+      %{game: game, admin_user: game.admin.user, non_admin_user: non_admin_user}
+    end
+
+    test "only admin can start next round", %{game: game, non_admin_user: non_admin_user} do
+      assert {:error, :not_admin} = Game.start_next_round(game, non_admin_user)
+    end
+
+    test "can only start next round in scoring state", %{game: game, admin_user: admin_user} do
+      game = %{game | state: :in_progress}
+
+      assert {:error, :invalid_state_transition} = Game.start_next_round(game, admin_user)
+    end
+
+    test "rotates dealer to next player", %{game: game, admin_user: admin_user} do
+      {:ok, new_game} = Game.start_next_round(game, admin_user)
+
+      assert new_game.current_round.dealer_index == 0
+    end
+
+    test "keeps game state consistent between rounds", %{game: game, admin_user: admin_user} do
+      {:ok, new_game} = Game.start_next_round(game, admin_user)
+
+      assert new_game.state == :in_progress
+      assert new_game.admin == game.admin
+      assert length(new_game.current_round.players) == 4
+      assert same_order_of_players?(game.players, new_game.current_round.players)
+    end
+  end
+
+  defp same_order_of_players?(players, new_round_players) do
+    Enum.map(new_round_players, & &1.user.id) == Enum.map(players, & &1.user.id)
+  end
+
   defp create_started_game_with_players(count) do
     admin = AccountsFixtures.user_fixture()
     game = Game.new("game-123", admin)
