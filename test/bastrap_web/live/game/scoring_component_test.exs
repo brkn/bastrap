@@ -97,5 +97,36 @@ defmodule BastrapWeb.Game.ScoringComponentTest do
 
       refute view |> has_element?("button", "Start Next Round")
     end
+
+    test "for non-admin player renders waiting for admin to start next round message", %{
+      conn: conn,
+      game: game
+    } do
+      non_admin_player = Enum.at(game.players, 1)
+
+      {:ok, view, _html} =
+        conn
+        |> log_in_user(non_admin_player.user)
+        |> live(~p"/games/#{game.id}")
+
+      assert view
+             |> has_element?("#waiting-message", "Waiting for game admin to start next round")
+
+      refute view |> has_element?("button", "Start Next Round")
+    end
+
+    test "when Start Next Round button is clicked transitions the game to a new round", %{
+      view: view,
+      game: game
+    } do
+      game |> GameFixtures.subscribe()
+
+      view |> element("button", "Start Next Round") |> render_click()
+      assert_receive {:game_update, updated_game}, 500
+
+      assert updated_game.state == :in_progress
+
+      refute view |> has_element?("#scoring-container")
+    end
   end
 end

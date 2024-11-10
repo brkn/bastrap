@@ -33,6 +33,17 @@ defmodule Bastrap.Games do
     end
   end
 
+  @spec start_next_round(game_id_t(), user_t()) :: {:error, :not_found} | {:ok, :starting}
+  def start_next_round(game_id, user) do
+    case game_pid(game_id) do
+      {:ok, pid} ->
+        GenServer.cast(pid, {:start_next_round, user}) |> then(fn _ -> {:ok, :starting} end)
+
+      _ ->
+        {:error, :not_found}
+    end
+  end
+
   @spec get_game(game_id_t()) :: {:error, :not_found} | {:ok, any()}
   def get_game(game_id) do
     case game_pid(game_id) do

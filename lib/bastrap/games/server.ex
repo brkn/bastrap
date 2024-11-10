@@ -42,6 +42,18 @@ defmodule Bastrap.Games.Server do
     end
   end
 
+  def handle_cast({:start_next_round, user}, game) do
+    with :ok <- authorize_game_admin(game, user),
+         {:ok, updated_game} <- Game.start_next_round(game, user) do
+      broadcast_update(updated_game)
+      {:noreply, updated_game}
+    else
+      {:error, reason} ->
+        broadcast_game_error(game, reason)
+        {:noreply, game}
+    end
+  end
+
   def handle_cast({:select_card, user, card_position}, %{state: :in_progress} = game) do
     with {:ok, card_owner} <- Game.find_player_by_id(game, card_position.player_id),
          :ok <- authorize_player_for_select_card(user, card_owner),

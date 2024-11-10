@@ -1,6 +1,8 @@
 defmodule BastrapWeb.Game.ScoringComponent do
   use BastrapWeb, :live_component
 
+  alias Bastrap.Games
+
   def mount(socket) do
     {:ok, assign(socket, :total_scores, %{})}
   end
@@ -75,9 +77,27 @@ defmodule BastrapWeb.Game.ScoringComponent do
         >
           Start Next Round
         </button>
+      <% else %>
+        <p id="waiting-message">
+          Waiting for game admin to start next round
+        </p>
       <% end %>
     </section>
     """
+  end
+
+  def handle_event("start_next_round", _, socket) do
+    %{game: %{id: game_id}, current_user: current_user} = socket.assigns
+
+    case Games.start_next_round(game_id, current_user) do
+      {:ok, :starting} ->
+        {:noreply, put_flash(socket, :info, "Starting next round...")}
+
+      {:error, reason} ->
+        {:noreply, put_flash(socket, :error, "Failed to start next round: #{reason}")}
+    end
+
+    {:noreply, socket}
   end
 
   defp calculate_total(player, total_scores) do
