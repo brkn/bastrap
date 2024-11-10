@@ -75,6 +75,21 @@ defmodule Bastrap.Games.Player do
   def selected_card_ranks(player), do: Hand.selected_card_set(player.hand)
 
   @doc """
+  Calculates the final score for a round by subtracting penalties for remaining cards.
+  IMPORTANT: make sure to pass a round player struct, not a game player struct.
+
+  ## Examples
+      iex> hand = %Bastrap.Games.Hand{cards: [{1, 2}, {3, 4}]}
+      iex> player = %Bastrap.Games.Player{current_score: 5, hand: hand}
+      iex> Bastrap.Games.Player.net_round_score(player)
+      3  # 5 points earned - 2 cards penalty
+  """
+  @spec net_round_score(t()) :: integer()
+  def net_round_score(%__MODULE__{current_score: score, hand: hand}) do
+    score - length(hand.cards)
+  end
+
+  @doc """
   Converts a player's view to an opponent's view by hiding their card ranks.
   Keeps the player's metadata but makes their hand face-down and unselectable.
 

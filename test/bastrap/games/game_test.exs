@@ -238,7 +238,26 @@ defmodule Bastrap.Games.GameTest do
     setup do
       game =
         GameFixtures.new()
-        |> GameFixtures.start_game(player_count: 3, dealer_index: 3)
+        |> GameFixtures.start_game(player_count: 2, dealer_index: 2)
+        |> GameFixtures.update_player_total_score(0, 15)
+        |> GameFixtures.update_player_total_score(1, 0)
+        |> GameFixtures.update_player_total_score(2, -5)
+        |> GameFixtures.update_player(0, fn p ->
+          # -2 penalty
+          hand = Bastrap.Games.Hand.new([{1, 2}, {3, 4}])
+          %{p | hand: hand, current_score: 5}
+        end)
+        |> GameFixtures.update_player(1, fn p ->
+          # -1 penalty
+          hand = Bastrap.Games.Hand.new([{5, 6}])
+          %{p | hand: hand, current_score: 0}
+        end)
+        |> GameFixtures.update_player(2, fn p ->
+          # 0 penalty
+          hand = Bastrap.Games.Hand.new()
+
+          %{p | hand: hand, current_score: 8}
+        end)
         |> Map.put(:state, :scoring)
 
       non_admin_user = game.players |> List.last() |> then(& &1.user)
@@ -267,8 +286,21 @@ defmodule Bastrap.Games.GameTest do
 
       assert new_game.state == :in_progress
       assert new_game.admin == game.admin
-      assert length(new_game.current_round.players) == 4
+      assert length(new_game.current_round.players) == 3
       assert same_order_of_players?(game.players, new_game.current_round.players)
+    end
+
+    test "accumulates player scores from the previous round", %{
+      game: game,
+      admin_user: admin_user
+    } do
+      {:ok, new_game} = Game.start_next_round(game, admin_user)
+
+      expected_player_total_scores = [18, -1, 3]
+      actual_player_total_scores = new_game.players |> Enum.map(& &1.current_score)
+
+      assert expected_player_total_scores == actual_player_total_scores
+      assert new_game.current_round.players |> Enum.all?(&(&1.current_score == 0))
     end
   end
 

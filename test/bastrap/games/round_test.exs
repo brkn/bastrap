@@ -68,4 +68,35 @@ defmodule Bastrap.Games.RoundTest do
              end)
     end
   end
+
+  describe "Round.create_next_round/1" do
+    setup do
+      players =
+        1..3
+        |> Enum.with_index()
+        |> Enum.map(fn {_, index} -> AccountsFixtures.user_fixture(id: index) end)
+        |> Enum.map(&Player.new/1)
+        |> Enum.with_index()
+        |> Enum.map(fn
+          {player, index} -> %{player | current_score: index * 2 + 1}
+        end)
+
+      %{players: players}
+    end
+
+    test "creates new round with rotated dealer and reset scores", %{players: players} do
+      old_round = %Round{
+        dealer_index: 2,
+        players: players
+      }
+
+      next_round = Round.create_next_round(old_round)
+
+      assert next_round.dealer_index == 0
+      assert next_round.players |> Enum.all?(&(&1.current_score == 0))
+
+      assert next_round.players |> Enum.map(& &1.user.id) ==
+               old_round.players |> Enum.map(& &1.user.id)
+    end
+  end
 end

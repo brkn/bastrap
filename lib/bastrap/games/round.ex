@@ -35,6 +35,28 @@ defmodule Bastrap.Games.Round do
   end
 
   @doc """
+  Creates a new round from an existing round by rotating the dealer and resetting scores.
+  Preserves player order but starts fresh with zero scores.
+
+  ## Examples
+      iex> player1 = %Player{user: %{id: 1}, current_score: 5}
+      iex> player2 = %Player{user: %{id: 2}, current_score: 3}
+      iex> player3 = %Player{user: %{id: 3}, current_score: -6}
+      iex> current_round = %Round{dealer_index: 0, players: [player1, player2, player3]}
+      iex> next_round = Round.create_next_round(current_round)
+      iex> {next_round.dealer_index, next_round.players |> Enum.map(&{&1.user.id, &1.current_score})}
+      {1, [{1, 0}, {2, 0}, {3, 0}]}
+  """
+  @spec create_next_round(t()) :: t()
+  def create_next_round(%__MODULE__{dealer_index: dealer_index, players: players}) do
+    new_dealer_index = next_player_index(dealer_index, length(players))
+
+    players
+    |> Enum.map(&%{&1 | current_score: 0})
+    |> new(new_dealer_index)
+  end
+
+  @doc """
   Advances the turn to the next player.
 
   ## Examples

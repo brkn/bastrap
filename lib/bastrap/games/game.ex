@@ -132,11 +132,22 @@ defmodule Bastrap.Games.Game do
     if game.admin.user != user do
       {:error, :not_admin}
     else
-      # TODO: update player's total scores.
-      # last_round_players = game.current_round.players
-      new_dealer_index = Round.next_player_index(game.current_round.dealer_index, length(players))
-      new_round = Round.new(players, new_dealer_index)
-      new_game = %__MODULE__{game | state: :in_progress, current_round: new_round}
+      updated_game_players =
+        Enum.zip(players, game.current_round.players)
+        |> Enum.map(fn {game_player, round_player} ->
+          %{
+            game_player
+            | current_score: game_player.current_score + Player.net_round_score(round_player)
+          }
+        end)
+
+      new_round = Round.create_next_round(game.current_round)
+      new_game = %__MODULE__{
+        game
+        | players: updated_game_players,
+          state: :in_progress,
+          current_round: new_round
+      }
 
       {:ok, new_game}
     end
