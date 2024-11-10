@@ -31,7 +31,7 @@ defmodule Bastrap.Games.Server do
   end
 
   def handle_cast({:start_game, user}, game) do
-    with :ok <- authorize_user_for_starting_game(game, user),
+    with :ok <- authorize_game_admin(game, user),
          {:ok, updated_game} <- Game.start(game, user) do
       broadcast_update(updated_game)
       {:noreply, updated_game}
@@ -87,7 +87,7 @@ defmodule Bastrap.Games.Server do
       else: {:error, "You can only select your own cards"}
   end
 
-  defp authorize_user_for_starting_game(game, user) do
+  defp authorize_game_admin(game, user) do
     if game.admin.user.id == user.id, do: :ok, else: {:error, :not_admin}
   end
 
