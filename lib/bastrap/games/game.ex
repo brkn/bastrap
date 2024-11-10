@@ -104,12 +104,11 @@ defmodule Bastrap.Games.Game do
       {:error, :not_admin}
   """
   @spec start(t(), Bastrap.Accounts.User.t()) :: {:ok, t()} | {:error, atom()}
-  def start(%{state: :in_progress}, _user), do: {:error, :already_started}
   def start(game, _) when length(game.players) < 3, do: {:error, :not_enough_players}
   def start(game, _) when length(game.players) > 5, do: {:error, :too_many_players}
 
-  def start(%{admin: %{user: admin_user}, players: players} = game, user) do
-    if admin_user != user do
+  def start(%{state: :not_started, players: players} = game, user) do
+    if game.admin.user != user do
       {:error, :not_admin}
     else
       # Why not handle dealer_index at Round.new method?
@@ -121,6 +120,8 @@ defmodule Bastrap.Games.Game do
       {:ok, new_game}
     end
   end
+
+  def start(_game, _user), do: {:error, :already_started}
 
   @doc """
   Returns the player whose turn it currently is.
