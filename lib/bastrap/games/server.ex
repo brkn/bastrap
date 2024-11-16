@@ -1,47 +1,70 @@
 defmodule Bastrap.Games.Server do
+  @moduledoc """
+  GenServer implementation for managing game state and player interactions.
+  Handles game lifecycle, authorization, and broadcasting updates to connected clients.
+  """
+
   use GenServer
 
   alias Phoenix.PubSub
   alias Bastrap.Games.Game
 
+  @doc """
+  Starts a new game server with the given admin user.
+  Returns `{:ok, pid}` if successful.
+  """
+  @spec start_link(Bastrap.Accounts.User.t()) :: GenServer.on_start()
   def start_link(admin) do
     game_id = Ecto.UUID.generate()
     GenServer.start_link(__MODULE__, {admin, game_id}, name: via_tuple(game_id))
   end
 
+  @impl true
   def init({admin, game_id}) do
     game = Game.new(game_id, admin)
     broadcast_update(game)
     {:ok, game}
   end
 
+  @impl true
   def handle_call(:get_id, _from, game), do: {:reply, game.id, game}
+
+  @impl true
   def handle_call(:get_game, _from, game), do: {:reply, game, game}
+
+  @impl true
   def handle_call({:put_game, new_game}, _, _game), do: {:reply, new_game, new_game}
 
+  @impl true
   def handle_cast({:join, user}, %{state: :not_started} = game) do
     with {:ok, updated_game} <- Game.join(game, user) do
-      broadcast_update(updated_game)
-      {:noreply, updated_game}
+      updated_game
+      |> tap(&broadcast_update/1)
+      |> then(&{:noreply, &1})
     else
       {:error, reason} ->
-        broadcast_game_error(game, reason)
-        {:noreply, game}
+        game
+        |> tap(&broadcast_game_error(&1, reason))
+        |> then(&{:noreply, &1})
     end
   end
 
+  @impl true
   def handle_cast({:start_game, user}, game) do
     with :ok <- authorize_game_admin(game, user),
          {:ok, updated_game} <- Game.start(game, user) do
-      broadcast_update(updated_game)
-      {:noreply, updated_game}
+      updated_game
+      |> tap(&broadcast_update/1)
+      |> then(&{:noreply, &1})
     else
       {:error, reason} ->
-        broadcast_game_error(game, reason)
-        {:noreply, game}
+        game
+        |> tap(&broadcast_game_error(&1, reason))
+        |> then(&{:noreply, &1})
     end
   end
 
+  @impl true
   def handle_cast({:start_next_round, user}, game) do
     with :ok <- authorize_game_admin(game, user),
          {:ok, updated_game} <- Game.start_next_round(game, user) do
@@ -54,6 +77,7 @@ defmodule Bastrap.Games.Server do
     end
   end
 
+  @impl true
   def handle_cast({:select_card, user, card_position}, %{state: :in_progress} = game) do
     with {:ok, card_owner} <- Game.find_player_by_id(game, card_position.player_id),
          :ok <- authorize_player_for_select_card(user, card_owner),
@@ -67,6 +91,7 @@ defmodule Bastrap.Games.Server do
     end
   end
 
+  @impl true
   def handle_cast({:submit_selected_cards, user}, game) do
     with {:ok, current_player} <- Game.find_player_by_id(game, user.id),
          {:ok, turn_player} <- {:ok, Game.current_turn_player(game)},
@@ -118,5 +143,5 @@ defmodule Bastrap.Games.Server do
   defp humanize_error(:card_not_selectable), do: "Card is not selectable"
   defp humanize_error(:invalid_index), do: "Invalid card index"
   defp humanize_error(error) when is_binary(error), do: error
-  defp humanize_error(_), do: "An error occurred"
+  defp humanize_error(_), do: "An error occurred" # TODO: we should log an error when we have untranslated error sym
 end

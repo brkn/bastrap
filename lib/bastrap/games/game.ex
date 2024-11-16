@@ -142,6 +142,7 @@ defmodule Bastrap.Games.Game do
         end)
 
       new_round = Round.create_next_round(game.current_round)
+
       new_game = %__MODULE__{
         game
         | players: updated_game_players,
