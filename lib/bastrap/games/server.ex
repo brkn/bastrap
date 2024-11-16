@@ -115,7 +115,11 @@ defmodule Bastrap.Games.Server do
   end
 
   defp broadcast_game_error(game, message) do
-    PubSub.broadcast(Bastrap.PubSub, "game:#{game.id}", {:game_error, humanize_error(message)})
+    PubSub.broadcast(
+      Bastrap.PubSub,
+      "game:#{game.id}",
+      {:game_error, Bastrap.Games.ErrorHandler.humanize(message)}
+    )
   end
 
   defp authorize_player_for_select_card(user, card_owner) do
@@ -135,13 +139,4 @@ defmodule Bastrap.Games.Server do
       {:error, :not_your_turn}
     end
   end
-
-  defp humanize_error(:not_enough_players), do: "Need at least 3 players to start the game"
-  defp humanize_error(:too_many_players), do: "Can't have more than 5 players"
-  defp humanize_error(:not_your_turn), do: "Not your turn"
-  defp humanize_error(:card_set_not_higher), do: "Selected cards must be higher than center pile"
-  defp humanize_error(:card_not_selectable), do: "Card is not selectable"
-  defp humanize_error(:invalid_index), do: "Invalid card index"
-  defp humanize_error(error) when is_binary(error), do: error
-  defp humanize_error(_), do: "An error occurred" # TODO: we should log an error when we have untranslated error sym
 end
