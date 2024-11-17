@@ -286,7 +286,7 @@ defmodule BastrapWeb.Game.RoundComponentTest do
         end)
         |> Games.put_game()
 
-      # assert_receive {:game_update, mocked_game}, 500
+      assert_receive {:game_update, _}, 500
 
       {:ok, view, _html} =
         conn

@@ -9,19 +9,24 @@ defmodule Bastrap.Games.Server do
   alias Phoenix.PubSub
   alias Bastrap.Games.Game
 
+  @table_name :games_table
+
   @doc """
   Starts a new game server with the given admin user.
   Returns `{:ok, pid}` if successful.
   """
-  @spec start_link(Bastrap.Accounts.User.t()) :: GenServer.on_start()
-  def start_link(admin) do
-    game_id = Ecto.UUID.generate()
+  def start_link({admin, game_id}) do
     GenServer.start_link(__MODULE__, {admin, game_id}, name: via_tuple(game_id))
   end
 
   @impl true
   def init({admin, game_id}) do
-    game = Game.new(game_id, admin)
+    game =
+      case :ets.lookup(@table_name, game_id) do
+        [{^game_id, saved_game}] -> saved_game
+        [] -> Game.new(game_id, admin)
+      end
+
     broadcast_update(game)
     {:ok, game}
   end
@@ -33,7 +38,11 @@ defmodule Bastrap.Games.Server do
   def handle_call(:get_game, _from, game), do: {:reply, game, game}
 
   @impl true
-  def handle_call({:put_game, new_game}, _, _game), do: {:reply, new_game, new_game}
+  def handle_call({:put_game, new_game}, _, _game) do
+    broadcast_update(new_game)
+
+    {:reply, new_game, new_game}
+  end
 
   @impl true
   def handle_cast({:join, user}, %{state: :not_started} = game) do
@@ -111,6 +120,8 @@ defmodule Bastrap.Games.Server do
   end
 
   defp broadcast_update(game) do
+    :ets.insert(@table_name, {game.id, game})
+
     PubSub.broadcast(Bastrap.PubSub, "game:#{game.id}", {:game_update, game})
   end
 

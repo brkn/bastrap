@@ -18,7 +18,15 @@ defmodule Bastrap.Games.Supervisor do
   """
   @spec create_game(Bastrap.Accounts.User.t()) :: DynamicSupervisor.on_start_child()
   def create_game(admin) do
-    DynamicSupervisor.start_child(__MODULE__, {Bastrap.Games.Server, admin})
+    game_id = Ecto.UUID.generate()
+
+    child_spec = %{
+      id: Bastrap.Games.Server,
+      start: {Bastrap.Games.Server, :start_link, [{admin, game_id}]},
+      restart: :transient
+    }
+
+    DynamicSupervisor.start_child(__MODULE__, child_spec)
   end
 
   @impl true

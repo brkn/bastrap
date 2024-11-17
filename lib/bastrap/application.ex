@@ -7,6 +7,8 @@ defmodule Bastrap.Application do
 
   @impl true
   def start(_type, _args) do
+    :ets.new(:games_table, [:set, :public, :named_table, :named_table])
+
     children = [
       BastrapWeb.Telemetry,
       Bastrap.Repo,
