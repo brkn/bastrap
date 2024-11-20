@@ -2,7 +2,7 @@
 service: bastrap
 
 # Name of the container image.
-image: unbrkn/bastrap
+image: brkn/bastrap
 
 # Deploy to these servers.
 servers:
@@ -28,13 +28,12 @@ proxy:
 registry:
   server: ghcr.io
   username: brkn
-  # password: <%= ENV["KAMAL_REGISTRY_PASSWORD"] %>
   password:
     - KAMAL_REGISTRY_PASSWORD
 
 builder:
   arch: amd64
-# remote: ssh://root@23.88.49.186
+  remote: ssh://root@23.88.49.186
 
 env:
   clear:
@@ -77,7 +76,7 @@ env:
 # TODO: add postgres
 # accessories:
 #   db:
-#     image: mysql:8.0
+#     image: postgres:15.4
 #     host: 192.168.0.2
 #     port: 3306
 #     env:
