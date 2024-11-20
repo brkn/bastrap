@@ -34,6 +34,8 @@ defmodule BastrapWeb.Endpoint do
     plug Phoenix.Ecto.CheckRepoStatus, otp_app: :bastrap
   end
 
+  plug BastrapWeb.HealthCheckPlug
+
   plug Phoenix.LiveDashboard.RequestLogger,
     param_key: "request_logger",
     cookie_key: "request_logger"
